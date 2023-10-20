@@ -2,7 +2,7 @@ import sys
 import os
 import shutil
 from PyQt5.QtWidgets import QWidget, QApplication, QTreeView, QVBoxLayout, QPushButton, QInputDialog, QLineEdit, QMessageBox, QFileSystemModel
-
+from PyQt5.QtCore import Qt
 
 class Main(QWidget):
     def __init__(self):
@@ -12,11 +12,13 @@ class Main(QWidget):
 
         self.tv = QTreeView(self)
         self.model = QFileSystemModel()
-        self.btnRen = QPushButton("이름바꾸기")
-        self.btnDel = QPushButton("파일삭제")
+        self.btnRen = QPushButton("이름 바꾸기")
+        self.btnDel = QPushButton("파일 삭제")
         self.btnOpen = QPushButton("파일/폴더 열기")
+        self.btnSortExt = QPushButton("파일 확장자별 정렬")
+        self.btnSortDate = QPushButton("수정 날짜순 정렬")
+        self.btnFilterExt = QPushButton("확장자별 필터링")
         self.layout = QVBoxLayout()
-
         self.setUi()
         self.setSlot()
 
@@ -32,7 +34,7 @@ class Main(QWidget):
 
     def setUi(self):
         self.setGeometry(300, 300, 700, 350)
-        self.setWindowTitle("QFileSystemModel")
+        self.setWindowTitle("파일 탐색기")
         self.model.setRootPath(self.path)
         self.tv.setModel(self.model)
         self.tv.setColumnWidth(0, 250)
@@ -41,6 +43,9 @@ class Main(QWidget):
         self.layout.addWidget(self.btnDel)
         self.layout.addWidget(self.btnRen)
         self.layout.addWidget(self.btnOpen)
+        self.layout.addWidget(self.btnSortExt)
+        self.layout.addWidget(self.btnSortDate)
+        self.layout.addWidget(self.btnFilterExt)
         self.setLayout(self.layout)
 
     def setSlot(self):
@@ -48,6 +53,10 @@ class Main(QWidget):
         self.btnRen.clicked.connect(self.ren)
         self.btnDel.clicked.connect(self.rm)
         self.btnOpen.clicked.connect(self.open_item)
+        self.btnSortExt.clicked.connect(self.sort_by_ext)
+        self.btnSortDate.clicked.connect(self.sort_by_date)
+        self.btnFilterExt.clicked.connect(self.filter_by_ext)
+
 
     def setIndex(self, index):
         self.index = index
@@ -82,7 +91,22 @@ class Main(QWidget):
                 print(fname + ' 폴더 삭제')
         except Exception as e:
             print("Error:", e)
-
+    
+    #파일 확장자별 정렬
+    def sort_by_ext(self):
+        self.model.sort(2, Qt.AscendingOrder)
+    
+    #파일 날짜순 정렬
+    def sort_by_date(self):
+        self.model.sort(3, Qt.DescendingOrder)
+    
+    #파일 확장자별 필터링
+    def filter_by_ext(self):
+        text, res = QInputDialog.getText(self, "확장자별 필터링", "필터링할 확장자를 입력하세요. (예:.txt)", QLineEdit.Normal)
+        if res:
+            ext_filter_list=["*" + text]
+            self.model.setNameFilters(ext_filter_list)
+            
 if __name__ == "__main__":
     app = QApplication([])
     ex = Main()
