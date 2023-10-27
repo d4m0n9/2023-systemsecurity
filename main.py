@@ -18,6 +18,7 @@ class Main(QWidget):
         self.btnSortExt = QPushButton("파일 확장자별 정렬")
         self.btnSortDate = QPushButton("수정 날짜순 정렬")
         self.btnFilterExt = QPushButton("확장자별 필터링")
+        self.btnSearch = QPushButton("파일 검색")
         self.layout = QVBoxLayout()
         self.setUi()
         self.setSlot()
@@ -46,6 +47,7 @@ class Main(QWidget):
         self.layout.addWidget(self.btnSortExt)
         self.layout.addWidget(self.btnSortDate)
         self.layout.addWidget(self.btnFilterExt)
+        self.layout.addWidget(self.btnSearch)
         self.setLayout(self.layout)
 
     def setSlot(self):
@@ -56,6 +58,7 @@ class Main(QWidget):
         self.btnSortExt.clicked.connect(self.sort_by_ext)
         self.btnSortDate.clicked.connect(self.sort_by_date)
         self.btnFilterExt.clicked.connect(self.filter_by_ext)
+        self.btnSearch.clicked.connect(self.search_file)
 
 
     def setIndex(self, index):
@@ -106,6 +109,17 @@ class Main(QWidget):
         if res:
             ext_filter_list=["*" + text]
             self.model.setNameFilters(ext_filter_list)
+            
+    # 파일 검색 기능
+    def search_file(self):
+        text, res = QInputDialog.getText(self, "파일 검색", "검색할 파일 이름을 입력하세요.", QLineEdit.Normal)
+        if res:
+            for root, dirs, files in os.walk('/'):
+                if text in files:
+                    QMessageBox.information(self,"파일 위치",os.path.join(root,text))
+                    return
+                
+            QMessageBox.warning(self,"오류","찾는 파일이 없습니다.")
             
 if __name__ == "__main__":
     app = QApplication([])
