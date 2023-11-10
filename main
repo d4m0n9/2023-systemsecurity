@@ -1,9 +1,0 @@
-import sys
-from PyQt5.QtWidgets import QApplication
-from file_browser import FileBrowser
-
-if __name__ == "__main__":
-    app = QApplication([])
-    ex = FileBrowser()
-    ex.show()
-    sys.exit(app.exec_())
