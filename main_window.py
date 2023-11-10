@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QWidget, QTreeView, QVBoxLayout, QPushButton
+import sys
+from PyQt5.QtWidgets import QApplication, QWidget, QTreeView, QVBoxLayout, QPushButton
 from PyQt5.QtCore import Qt
 from file_operations import open_item, rename_item, delete_item
 from sort_operations import sort_by_ext, sort_by_date
