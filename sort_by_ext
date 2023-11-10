@@ -1,2 +1,0 @@
-def sort_by_ext(self):
-    self.model.sort(2, Qt.AscendingOrder)
