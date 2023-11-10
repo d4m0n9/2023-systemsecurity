@@ -1,0 +1,2 @@
+def setIndex(self, index):
+    self.index = index
