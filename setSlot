@@ -1,0 +1,9 @@
+def setSlot(self):
+    self.tv.clicked.connect(self.setIndex)
+    self.btnRen.clicked.connect(self.ren)
+    self.btnDel.clicked.connect(self.rm)
+    self.btnOpen.clicked.connect(self.open_item)
+    self.btnSortExt.clicked.connect(self.sort_by_ext)
+    self.btnSortDate.clicked.connect(self.sort_by_date)
+    self.btnFilterExt.clicked.connect(self.filter_by_ext)
+    self.btnSearch.clicked.connect(self.search_file)
