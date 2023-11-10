@@ -1,0 +1,17 @@
+def ren(self):
+    os.chdir(self.model.filePath(self.model.parent(self.index)))
+    fname = self.model.fileName(self.index)
+    text, res = QInputDialog.getText(self, "이름 바꾸기", "바꿀 이름을 입력하세요.", QLineEdit.Normal, fname)
+
+    if res:
+        while True:
+            self.ok = True
+            for i in os.listdir(os.getcwd()):
+                if i == text:
+                    text, res = QInputDialog.getText(self, "중복 오류", "바꿀 이름을 입력하세요", QLineEdit.Normal, text)
+                    if not res:
+                        return
+                    self.ok = False
+                if self.ok:
+                    break
+        os.rename(fname, text)
