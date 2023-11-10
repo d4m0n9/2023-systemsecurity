@@ -1,9 +1,0 @@
-def open_item(self):
-    selected_index = self.index
-    if selected_index:
-        item_name = self.model.fileName(selected_index)
-        item_path = self.model.filePath(selected_index)
-        try:
-            os.startfile(item_path)
-        except Exception as e:
-            QMessageBox.warning(self, "오류", "파일을 열 수 없습니다")
