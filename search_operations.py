@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QInputDialog, QMessageBox
-
+ 
 def search_file(model):
     text, res = QInputDialog.getText(None, "파일 검색", "검색할 파일 이름을 입력하세요.", QLineEdit.Normal)
     if res:
