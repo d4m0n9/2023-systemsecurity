@@ -40,19 +40,17 @@ class Main(QWidget):
         self.setWindowTitle("파일 탐색기")
         self.model.setRootPath(self.path)
 
-        for tv in [self.tv1, self.tv2, self.tv3, self.tv4]:
+        for tv in [self.tv1, self.tv2, self.tv3]:
             tv.setModel(self.model)
             tv.setColumnWidth(0, 250)
 
         self.tab1_ui()
         self.tab2_ui()
         self.tab3_ui()
-        self.tab4_ui()
 
-        self.tabWidget.addTab(self.tab1, "Tab 1")
-        self.tabWidget.addTab(self.tab2, "Tab 2")
-        self.tabWidget.addTab(self.tab3, "Tab 3")
-        self.tabWidget.addTab(self.tab4, "Tab 4")
+        self.tabWidget.addTab(self.tab1, "파일 탐색기")
+        self.tabWidget.addTab(self.tab2, "파일 로그")
+        self.tabWidget.addTab(self.tab3, "악성 코드 스캔 및 진단")
         
         self.layout = QVBoxLayout(self)  # 메인 레이아웃 생성
         self.layout.addWidget(self.tabWidget)  # 메인 레이아웃에 탭 위젯 추가
@@ -80,17 +78,11 @@ class Main(QWidget):
         layout.addWidget(self.btnFilterExt)
         self.tab3.setLayout(layout)
 
-    def tab4_ui(self):
-        layout = QVBoxLayout()
-        layout.addWidget(self.tv4)
-        layout.addWidget(self.btnSearch)
-        self.tab4.setLayout(layout)
 
     def setSlot(self):
         self.tv1.clicked.connect(self.setIndex)
         self.tv2.clicked.connect(self.setIndex)
         self.tv3.clicked.connect(self.setIndex)
-        self.tv4.clicked.connect(self.setIndex)
         self.btnRen.clicked.connect(self.ren)
         self.btnDel.clicked.connect(self.rm)
         self.btnOpen.clicked.connect(self.open_item)
