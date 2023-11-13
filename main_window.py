@@ -1,5 +1,5 @@
 import sys, os, shutil
-from PyQt5.QtWidgets import QApplication, QWidget, QTreeView, QVBoxLayout, QPushButton, QInputDialog, QLineEdit, QMessageBox, QFileSystemModel, QTabWidget, QMenu
+from PyQt5.QtWidgets import QApplication, QWidget, QTreeView, QVBoxLayout, QPushButton, QInputDialog, QLineEdit, QMessageBox, QFileSystemModel, QTabWidget, QMenu, QComboBox
 from PyQt5.QtCore import Qt, QFileInfo
 from file_operations import open_item, rename_item, delete_item
 from sort_operations import sort_by_ext, sort_by_date
@@ -16,9 +16,9 @@ class Main(QWidget):
         self.tv2 = QTreeView(self)
         self.tv3 = QTreeView(self)
         self.model = QFileSystemModel()
-
-        self.btnSortExt = QPushButton("파일 확장자별 정렬")
-        self.btnSortDate = QPushButton("수정 날짜순 정렬")
+        
+        self.cbOperations = QComboBox(self)
+        self.cbOperations.addItems(["파일 확장자별 정렬", "수정 날짜순 정렬"])
         self.btnFilterExt = QPushButton("확장자별 필터링")
         self.btnSearch = QPushButton("파일 검색")
         
@@ -88,8 +88,7 @@ class Main(QWidget):
                 
     def tab1_ui(self):
         layout = QVBoxLayout()
-        layout.addWidget(self.btnSortExt)
-        layout.addWidget(self.btnSortDate)
+        layout.addWidget(self.cbOperations)
         layout.addWidget(self.btnFilterExt)
         layout.addWidget(self.tv1)
         self.tab1.setLayout(layout)
@@ -108,14 +107,19 @@ class Main(QWidget):
         self.tv1.clicked.connect(self.setIndex)
         self.tv2.clicked.connect(self.setIndex)
         self.tv3.clicked.connect(self.setIndex)
-        self.btnSortExt.clicked.connect(self.sort_by_ext)
-        self.btnSortDate.clicked.connect(self.sort_by_date)
         self.btnFilterExt.clicked.connect(self.filter_by_ext)
         self.btnSearch.clicked.connect(self.search_file)
         self.tv1.doubleClicked.connect(self.open_item)
         self.tv2.doubleClicked.connect(self.open_item)
         self.tv3.doubleClicked.connect(self.open_item)
+        self.cbOperations.currentIndexChanged.connect(self.execute_operation)
 
+    def execute_operation(self):
+        operation = self.cbOperations.currentText()
+        if operation == "파일 확장자별 정렬":
+            self.sort_by_ext()
+        elif operation == "수정 날짜순 정렬":
+            self.sort_by_date()
 
     def setIndex(self, index):
         self.index = index
