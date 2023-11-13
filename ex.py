@@ -14,7 +14,6 @@ class Main(QWidget):
         self.tv1 = QTreeView(self)
         self.tv2 = QTreeView(self)
         self.tv3 = QTreeView(self)
-        self.tv4 = QTreeView(self)
         self.model = QFileSystemModel()
 
         self.btnRen = QPushButton("이름 바꾸기")
@@ -51,7 +50,7 @@ class Main(QWidget):
         self.tabWidget.addTab(self.tab1, "파일 탐색기")
         self.tabWidget.addTab(self.tab2, "파일 로그")
         self.tabWidget.addTab(self.tab3, "악성 코드 스캔 및 진단")
-        
+
         self.layout = QVBoxLayout(self)  # 메인 레이아웃 생성
         self.layout.addWidget(self.tabWidget)  # 메인 레이아웃에 탭 위젯 추가
         self.setLayout(self.layout)  # 메인 레이아웃 설정
@@ -77,7 +76,6 @@ class Main(QWidget):
         layout.addWidget(self.btnSortDate)
         layout.addWidget(self.btnFilterExt)
         self.tab3.setLayout(layout)
-
 
     def setSlot(self):
         self.tv1.clicked.connect(self.setIndex)
