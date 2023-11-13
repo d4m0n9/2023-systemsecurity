@@ -16,8 +16,7 @@ class Main(QWidget):
         self.tv2 = QTreeView(self)
         self.tv3 = QTreeView(self)
         self.model = QFileSystemModel()
-        
-        self.btnOpen = QPushButton("파일/폴더 열기")
+
         self.btnSortExt = QPushButton("파일 확장자별 정렬")
         self.btnSortDate = QPushButton("수정 날짜순 정렬")
         self.btnFilterExt = QPushButton("확장자별 필터링")
@@ -89,7 +88,6 @@ class Main(QWidget):
                 
     def tab1_ui(self):
         layout = QVBoxLayout()
-        layout.addWidget(self.btnOpen)
         layout.addWidget(self.btnSortExt)
         layout.addWidget(self.btnSortDate)
         layout.addWidget(self.btnFilterExt)
@@ -110,7 +108,6 @@ class Main(QWidget):
         self.tv1.clicked.connect(self.setIndex)
         self.tv2.clicked.connect(self.setIndex)
         self.tv3.clicked.connect(self.setIndex)
-        self.btnOpen.clicked.connect(self.open_item)
         self.btnSortExt.clicked.connect(self.sort_by_ext)
         self.btnSortDate.clicked.connect(self.sort_by_date)
         self.btnFilterExt.clicked.connect(self.filter_by_ext)
