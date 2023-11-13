@@ -1,12 +1,10 @@
 import sys, os, shutil
-from PyQt5.QtWidgets import QApplication, QWidget, QTreeView, QVBoxLayout, QPushButton, QInputDialog, QLineEdit, \
-    QMessageBox, QFileSystemModel, QTabWidget, QMenu, QComboBox
+from PyQt5.QtWidgets import QApplication, QWidget, QTreeView, QVBoxLayout, QPushButton, QInputDialog, QLineEdit, QMessageBox, QFileSystemModel, QTabWidget, QMenu, QComboBox
 from PyQt5.QtCore import Qt, QFileInfo
 from file_operations import open_item, rename_item, delete_item
 from sort_operations import sort_by_ext, sort_by_date
 from filter_operations import filter_by_ext
 from search_operations import search_file
-
 
 class Main(QWidget):
     def __init__(self):
@@ -18,19 +16,19 @@ class Main(QWidget):
         self.tv2 = QTreeView(self)
         self.tv3 = QTreeView(self)
         self.model = QFileSystemModel()
-
+        
         self.cbOperations = QComboBox(self)
         self.cbOperations.addItems(["파일 확장자별 정렬", "수정 날짜순 정렬"])
         self.btnFilterExt = QPushButton("확장자별 필터링")
         self.btnSearch = QPushButton("파일 검색")
-
+        
         self.tabWidget = QTabWidget()
         self.tabWidget.setTabPosition(QTabWidget.West)
         self.tab1 = QWidget()
         self.tab2 = QWidget()
         self.tab3 = QWidget()
         self.tab4 = QWidget()
-
+        
         self.setUi()
         self.setSlot()
 
@@ -67,9 +65,9 @@ class Main(QWidget):
         self.tabWidget.addTab(self.tab2, "파일 로그")
         self.tabWidget.addTab(self.tab3, "악성 코드 스캔 및 진단")
 
-        self.layout = QVBoxLayout(self)
+        self.layout = QVBoxLayout(self) 
         self.layout.addWidget(self.tabWidget)
-        self.setLayout(self.layout)
+        self.setLayout(self.layout) 
 
     def openMenu(self, position):
         self.index = self.sender().indexAt(position)
@@ -80,18 +78,19 @@ class Main(QWidget):
             deleteAction = menu.addAction("파일 삭제")
             propertiesAction = menu.addAction("파일 속성")
             action = menu.exec_(self.sender().viewport().mapToGlobal(position))
-
+            
             if action == renameAction:
                 self.ren()
             elif action == deleteAction:
                 self.rm()
             elif action == propertiesAction:
                 self.show_properties()
-
+                
     def tab1_ui(self):
         layout = QVBoxLayout()
         layout.addWidget(self.cbOperations)
         layout.addWidget(self.btnFilterExt)
+        layout.addWidget(self.btnSearch)
         layout.addWidget(self.tv1)
         self.tab1.setLayout(layout)
 
@@ -145,19 +144,17 @@ class Main(QWidget):
             os.rename(fname, text)
 
     def rm(self):
-        item_path = self.model.filePath(self.index)
-        item_name = self.model.fileName(self.index)
-        confirm = QMessageBox.question(self, "파일 삭제", f"파일을 삭제하시겠습니까?\n\n{item_name}", QMessageBox.Yes | QMessageBox.No)
-        if confirm == QMessageBox.Yes:
-            try:
-                if self.model.isDir(self.index):
-                    shutil.rmtree(item_path)
-                    print(f"{item_name} 폴더 삭제")
-                else:
-                    delete_item(item_name)
-                    print(f"{item_name} 파일 삭제")
-            except Exception as e:
-                QMessageBox.warning(self, "오류", f"파일 삭제 중 오류가 발생했습니다:\n{str(e)}")
+        os.chdir(self.model.filePath(self.model.parent(self.index)))
+        fname = self.model.fileName(self.index)
+        try:
+            if not self.model.isDir(self.index):
+                delete_item(fname)
+                print(fname + ' 파일 삭제')
+            else:
+                shutil.rmtree(fname)
+                print(fname + ' 폴더 삭제')
+        except Exception as e:
+            print("Error:", e)
 
     def sort_by_ext(self):
         sort_by_ext(self.model)
@@ -170,7 +167,7 @@ class Main(QWidget):
 
     def search_file(self):
         search_file(self.model)
-
+        
     def show_properties(self):
         if self.index:
             item_path = self.model.filePath(self.index)
@@ -185,7 +182,6 @@ class Main(QWidget):
                                    f"접근 시간: {item_info.lastRead().toString()}")
             msg.setWindowTitle("파일 속성")
             msg.exec_()
-
 
 if __name__ == "__main__":
     app = QApplication([])
