@@ -1,5 +1,5 @@
 import os
-import shutil 
+import shutil  
 from PyQt5.QtWidgets import QMessageBox
 
 def delete_item(model, index):
