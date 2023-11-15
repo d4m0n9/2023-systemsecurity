@@ -22,7 +22,8 @@ class Main(QWidget):
         self.cbOperations = QComboBox(self)
         self.cbOperations.addItems(["파일 확장자별 정렬", "수정 날짜순 정렬"])
         self.btnFilterExt = QPushButton("확장자별 필터링")
-        self.btnSearch = QPushButton("파일 검색")
+        self.leSearch = QLineEdit(self)
+        self.leSearch.setPlaceholderText("파일 검색")
 
         self.tabWidget = QTabWidget()
         self.tabWidget.setTabPosition(QTabWidget.West)
@@ -33,6 +34,10 @@ class Main(QWidget):
 
         self.setUi()
         self.setSlot()
+
+    def search_file_with_text(self):
+        search_text = self.leSearch.text()
+        search_file(self.model, search_text)
 
     def open_item(self, index):
         if index.isValid() and index.column() == 0:
@@ -77,8 +82,8 @@ class Main(QWidget):
         if len(indexes) > 0:
             menu = QMenu()
             renameAction = menu.addAction("이름 바꾸기")
-            deleteAction = menu.addAction("파일 삭제")
-            propertiesAction = menu.addAction("파일 속성")
+            deleteAction = menu.addAction("삭제")
+            propertiesAction = menu.addAction("속성")
             action = menu.exec_(self.sender().viewport().mapToGlobal(position))
 
             if action == renameAction:
@@ -92,7 +97,7 @@ class Main(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.cbOperations)
         layout.addWidget(self.btnFilterExt)
-        layout.addWidget(self.btnSearch)
+        layout.addWidget(self.leSearch)
         layout.addWidget(self.tv1)
         self.tab1.setLayout(layout)
 
@@ -111,11 +116,11 @@ class Main(QWidget):
         self.tv2.clicked.connect(self.setIndex)
         self.tv3.clicked.connect(self.setIndex)
         self.btnFilterExt.clicked.connect(self.filter_by_ext)
-        self.btnSearch.clicked.connect(self.search_file)
         self.tv1.doubleClicked.connect(self.open_item)
         self.tv2.doubleClicked.connect(self.open_item)
         self.tv3.doubleClicked.connect(self.open_item)
         self.cbOperations.currentIndexChanged.connect(self.execute_operation)
+        self.leSearch.returnPressed.connect(self.search_file_with_text)
 
     def execute_operation(self):
         operation = self.cbOperations.currentText()
@@ -142,26 +147,23 @@ class Main(QWidget):
                             return
                         self.ok = False
                 if self.ok:
-                        break
+                    break
             os.rename(fname, text)
 
     def rm(self):
-        os.chdir(self.model.filePath(self.model.parent(self.index)))
-        fname = self.model.fileName(self.index)
-        reply = QMessageBox.question(self, '삭제 확인',
-                                     f"'{fname}'를 삭제하시겠습니까?",
-                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-
-        if reply == QMessageBox.Yes:
+        item_path = self.model.filePath(self.index)
+        item_name = self.model.fileName(self.index)
+        confirm = QMessageBox.question(self, "파일 삭제", f"파일을 삭제하시겠습니까?\n\n{item_name}", QMessageBox.Yes | QMessageBox.No)
+        if confirm == QMessageBox.Yes:
             try:
-                if not self.model.isDir(self.index):
-                    delete_item(fname)
-                    print(fname + ' 파일 삭제')
+                if self.model.isDir(self.index):
+                    shutil.rmtree(item_path)
+                    print(f"{item_name} 폴더 삭제")
                 else:
-                    shutil.rmtree(fname)
-                    print(fname + ' 폴더 삭제')
+                    delete_item(item_name)
+                    print(f"{item_name} 파일 삭제")
             except Exception as e:
-                print("Error:", e)
+                QMessageBox.warning(self, "오류", f"파일 삭제 중 오류가 발생했습니다:\n{str(e)}")
 
     def sort_by_ext(self):
         sort_by_ext(self.model)
