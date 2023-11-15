@@ -5,7 +5,7 @@ from delete_file import delete_item
 from rename_file import rename_item
 from open_file import open_item
 from sort import sort_by_ext, sort_by_date
-from filter_by_ext import ExtensionFilter
+from filter_by_ext import filter_by_ext
 from search_file import search_files
 
 def setUi(self):
