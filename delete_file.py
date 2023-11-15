@@ -1,11 +1,21 @@
-def open_item(self, index):
-    if index.isValid() and index.column() == 0:
-        item_path = self.model.filePath(index)
-        if self.model.isDir(index):
-            self.tv1.setRootIndex(index)
-            self.tv1.scrollTo(index, QTreeView.PositionAtCenter)
-        else:
-            try:
-                os.startfile(item_path)
-            except Exception as e:
-                QMessageBox.warning(self, "오류", "파일을 열 수 없습니다.")
+import os
+import shutil
+from PyQt5.QtWidgets import QMessageBox
+
+def delete_item(model, index):
+    os.chdir(model.filePath(model.parent(index)))
+    fname = model.fileName(index)
+    reply = QMessageBox.question(model, '삭제 확인',
+                                 f"'{fname}'를 삭제하시겠습니까?",
+                                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+    if reply == QMessageBox.Yes:
+        try:
+            if not model.isDir(index):
+                os.remove(fname)
+                print(fname + ' 파일 삭제')
+            else:
+                shutil.rmtree(fname)
+                print(fname + ' 폴더 삭제')
+        except Exception as e:
+            print("Error:", e)
