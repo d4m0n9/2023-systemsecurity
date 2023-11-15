@@ -151,6 +151,8 @@ class Main(QWidget):
             if self.model.hasChildren(child_index):
                 self.search_in_directory(child_index, text)
 
+            self.search_in_directory(child_index, text)
+
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Backspace:
             current_index = self.tv.rootIndex()
