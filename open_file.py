@@ -1,5 +1,5 @@
 import os
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QMessageBox 
 
 def open_item(model, index):
     if index.isValid() and index.column() == 0:
