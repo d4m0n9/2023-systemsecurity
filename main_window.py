@@ -38,7 +38,7 @@ class Main(QWidget):
                     os.startfile(item_path)
                 except Exception as e:
                     QMessageBox.warning(self, "오류", "파일을 열 수 없습니다.")
-                    
+
     def setUi(self):
         self.setGeometry(300, 300, 700, 350)
         self.setWindowTitle("파일 탐색기")
@@ -73,13 +73,11 @@ class Main(QWidget):
             elif action == deleteAction:
                 self.rm()
 
-
     def setSlot(self):
         self.tv.clicked.connect(self.setIndex)
         self.btnFilterExt.clicked.connect(self.filter_by_ext)
         self.btnSearch.clicked.connect(self.search_file)
         self.tv.doubleClicked.connect(self.open_item)
-
         self.cbOperations.currentIndexChanged.connect(self.execute_operation)
 
     def execute_operation(self):
@@ -107,7 +105,7 @@ class Main(QWidget):
                             return
                         self.ok = False
                 if self.ok:
-                        break
+                    break
             os.rename(fname, text)
 
     def rm(self):
@@ -138,7 +136,30 @@ class Main(QWidget):
         filter_by_ext(self.model)
 
     def search_file(self):
-        search_file(self.model)
+        text, res = QInputDialog.getText(self, "파일 검색", "검색할 파일 이름을 입력하세요.", QLineEdit.Normal)
+        if res:
+            root_index = self.tv.rootIndex()
+            self.search_in_directory(root_index, text)
+
+    def search_in_directory(self, index, text):
+        for i in range(self.model.rowCount(index)):
+            child_index = self.model.index(i, 0, index)
+            if self.model.fileName(child_index).lower().startswith(text.lower()):
+                self.tv.scrollTo(child_index, QTreeView.PositionAtCenter)
+                self.tv.setCurrentIndex(child_index)
+                return
+            if self.model.hasChildren(child_index):
+                self.search_in_directory(child_index, text)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Backspace:
+            current_index = self.tv.rootIndex()
+            parent_index = self.model.parent(current_index)
+            if parent_index.isValid():
+                self.tv.setRootIndex(parent_index)
+                self.tv.scrollTo(parent_index, QTreeView.PositionAtCenter)
+                return
+        super().keyPressEvent(event)
 
 
 if __name__ == "__main__":
@@ -146,3 +167,6 @@ if __name__ == "__main__":
     ex = Main()
     ex.show()
     sys.exit(app.exec_())
+
+
+
