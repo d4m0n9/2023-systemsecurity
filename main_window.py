@@ -1,104 +1,179 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout
-from tree_view import TreeView
-from button import Button
-from input_dialog import InputDialog
-from message_box import MessageBox
+import sys, os, shutil
+from PyQt5.QtWidgets import QApplication, QWidget, QTreeView, QVBoxLayout, QPushButton, QInputDialog, QLineEdit, QMessageBox, QFileSystemModel, QTabWidget, QMenu, QComboBox
+from PyQt5.QtCore import Qt, QFileInfo
+from file_operations import open_item, rename_item, delete_item
+from sort_operations import sort_by_ext, sort_by_date
+from filter_operations import filter_by_ext
+from search_operations import search_file
 
-class MainWindow(QWidget):
+class Main(QWidget):
     def __init__(self):
         super().__init__()
         self.path = "C:"
         self.index = None
 
-        self.tv = TreeView()
-        self.btnRen = Button("이름 바꾸기")
-        self.btnDel = Button("파일 삭제")
-        self.btnOpen = Button("파일/폴더 열기")
-        self.btnSortExt = Button("파일 확장자별 정렬")
-        self.btnSortDate = Button("수정 날짜순 정렬")
-        self.btnFilterExt = Button("확장자별 필터링")
-        self.btnSearch = Button("파일 검색")
-        self.layout = QVBoxLayout()
+        self.tv1 = QTreeView(self)
+        self.tv2 = QTreeView(self)
+        self.tv3 = QTreeView(self)
+        self.model = QFileSystemModel()
+        
+        self.cbOperations = QComboBox(self)
+        self.cbOperations.addItems(["파일 확장자별 정렬", "수정 날짜순 정렬"])
+        self.btnFilterExt = QPushButton("확장자별 필터링")
+        self.leSearch = QLineEdit(self)
+        self.leSearch.setPlaceholderText("파일 검색")
+        
+        self.tabWidget = QTabWidget()
+        self.tabWidget.setTabPosition(QTabWidget.West)
+        self.tab1 = QWidget()
+        self.tab2 = QWidget()
+        self.tab3 = QWidget()
+        self.tab4 = QWidget()
+        
         self.setUi()
         self.setSlot()
 
-    def open_item(self):
-        selected_index = self.tv.get_selected_index()
-        if selected_index:
-            item_name = self.tv.get_file_name(selected_index)
-            item_path = self.tv.get_file_path(selected_index)
-            try:
-                os.startfile(item_path)
-            except Exception as e:
-                MessageBox().show_warning("오류", "파일을 열 수 없습니다")
+    def search_file_with_text(self):
+        search_text = self.leSearch.text() 
+        search_file(self.model, search_text)
+        
+    def open_item(self, index):
+        if index.isValid() and index.column() == 0:
+            item_path = self.model.filePath(index)
+            if self.model.isDir(index):
+                # 디렉토리일 경우 해당 디렉토리 열기
+                self.tv1.setRootIndex(index)
+                self.tv1.scrollTo(index, QTreeView.PositionAtCenter)
+            else:
+                # 파일일 경우 파일 열기
+                try:
+                    os.startfile(item_path)
+                except Exception as e:
+                    QMessageBox.warning(self, "오류", "파일을 열 수 없습니다.")
 
     def setUi(self):
         self.setGeometry(300, 300, 700, 350)
         self.setWindowTitle("파일 탐색기")
+        self.model.setRootPath(self.path)
 
-        self.layout.addWidget(self.tv)
-        self.layout.addWidget(self.btnDel)
-        self.layout.addWidget(self.btnRen)
-        self.layout.addWidget(self.btnOpen)
-        self.layout.addWidget(self.btnSortExt)
-        self.layout.addWidget(self.btnSortDate)
-        self.layout.addWidget(self.btnFilterExt)
-        self.layout.addWidget(self.btnSearch)
-        self.setLayout(self.layout)
+        for tv in [self.tv1, self.tv2, self.tv3]:
+            tv.setModel(self.model)
+            tv.setColumnWidth(0, 250)
+            tv.setContextMenuPolicy(Qt.CustomContextMenu)
+            tv.customContextMenuRequested.connect(self.openMenu)
+
+        self.tab1_ui()
+        self.tab2_ui()
+        self.tab3_ui()
+
+        self.tabWidget.addTab(self.tab1, "파일 탐색기")
+        self.tabWidget.addTab(self.tab2, "파일 로그")
+        self.tabWidget.addTab(self.tab3, "악성 코드 스캔 및 진단")
+
+        self.layout = QVBoxLayout(self) 
+        self.layout.addWidget(self.tabWidget)
+        self.setLayout(self.layout) 
+
+    def openMenu(self, position):
+        self.index = self.sender().indexAt(position)
+        indexes = self.sender().selectedIndexes()
+        if len(indexes) > 0:
+            menu = QMenu()
+            renameAction = menu.addAction("이름 바꾸기")
+            deleteAction = menu.addAction("삭제")
+            propertiesAction = menu.addAction("속성")
+            action = menu.exec_(self.sender().viewport().mapToGlobal(position))
+            
+            if action == renameAction:
+                self.ren()
+            elif action == deleteAction:
+                self.rm()
+            elif action == propertiesAction:
+                self.show_properties()
+                
+    def tab1_ui(self):
+        layout = QVBoxLayout()
+        layout.addWidget(self.cbOperations)
+        layout.addWidget(self.btnFilterExt)
+        layout.addWidget(self.leSearch)
+        layout.addWidget(self.tv1)
+        self.tab1.setLayout(layout)
+
+    def tab2_ui(self):
+        layout = QVBoxLayout()
+        layout.addWidget(self.tv2)
+        self.tab2.setLayout(layout)
+
+    def tab3_ui(self):
+        layout = QVBoxLayout()
+        layout.addWidget(self.tv3)
+        self.tab3.setLayout(layout)
 
     def setSlot(self):
-        self.btnRen.clicked.connect(self.ren)
-        self.btnDel.clicked.connect(self.rm)
-        self.btnOpen.clicked.connect(self.open_item)
-        self.btnSortExt.clicked.connect(self.tv.sort_by_ext)
-        self.btnSortDate.clicked.connect(self.tv.sort_by_date)
-        self.btnFilterExt.clicked.connect(self.tv.filter_by_ext)
-        self.btnSearch.clicked.connect(self.search_file)
+        self.tv1.clicked.connect(self.setIndex)
+        self.tv2.clicked.connect(self.setIndex)
+        self.tv3.clicked.connect(self.setIndex)
+        self.btnFilterExt.clicked.connect(self.filter_by_ext)
+        self.tv1.doubleClicked.connect(self.open_item)
+        self.tv2.doubleClicked.connect(self.open_item)
+        self.tv3.doubleClicked.connect(self.open_item)
+        self.cbOperations.currentIndexChanged.connect(self.execute_operation)
+        self.leSearch.returnPressed.connect(self.search_file_with_text)
+
+    def execute_operation(self):
+        operation = self.cbOperations.currentText()
+        if operation == "파일 확장자별 정렬":
+            self.sort_by_ext()
+        elif operation == "수정 날짜순 정렬":
+            self.sort_by_date()
+
+    def setIndex(self, index):
+        self.index = index
 
     def ren(self):
-        selected_index = self.tv.get_selected_index()
-        if selected_index:
-            parent_path = self.tv.get_parent_path(selected_index)
-            fname = self.tv.get_file_name(selected_index)
-            text, res = InputDialog().get_text("이름 바꾸기", "바꿀 이름을 입력하세요.", fname)
+        os.chdir(self.model.filePath(self.model.parent(self.index)))
+        fname = self.model.fileName(self.index)
+        text, res = QInputDialog.getText(self, "이름 바꾸기", "바꿀 이름을 입력하세요.", QLineEdit.Normal, fname)
 
-            if res:
-                while True:
-                    self.ok = True
-                    for i in os.listdir(parent_path):
-                        if i == text:
-                            text, res = InputDialog().get_text("중복 오류", "바꿀 이름을 입력하세요.", text)
-                            if not res:
-                                return
-                            self.ok = False
+        if res:
+            while True:
+                self.ok = True
+                for i in os.listdir(os.getcwd()):
+                    if i == text:
+                        text, res = QInputDialog.getText(self, "중복 오류", "바꿀 이름을 입력하세요", QLineEdit.Normal, text)
+                        if not res:
+                            return
+                        self.ok = False
                     if self.ok:
                         break
-                os.rename(os.path.join(parent_path, fname), os.path.join(parent_path, text))
+            os.rename(fname, text)
 
     def rm(self):
-        selected_index = self.tv.get_selected_index()
-        if selected_index:
-            parent_path = self.tv.get_parent_path(selected_index)
-            fname = self.tv.get_file_name(selected_index)
+        item_path = self.model.filePath(self.index)
+        item_name = self.model.fileName(self.index)
+        confirm = QMessageBox.question(self, "파일 삭제", f"파일을 삭제하시겠습니까?\n\n{item_name}", QMessageBox.Yes | QMessageBox.No)
+        if confirm == QMessageBox.Yes:
             try:
-                if not self.tv.is_dir(selected_index):
-                    os.unlink(os.path.join(parent_path, fname))
-                    print(fname + ' 파일 삭제')
+                if self.model.isDir(self.index):
+                    shutil.rmtree(item_path)
+                    print(f"{item_name} 폴더 삭제")
                 else:
-                    shutil.rmtree(os.path.join(parent_path, fname))
-                    print(fname + ' 폴더 삭제')
+                    delete_item(item_name)
+                    print(f"{item_name} 파일 삭제")
             except Exception as e:
-                print("Error:", e)
+                QMessageBox.warning(self, "오류", f"파일 삭제 중 오류가 발생했습니다:\n{str(e)}")
+
+    def sort_by_ext(self):
+        sort_by_ext(self.model)
+
+    def sort_by_date(self):
+        sort_by_date(self.model)
+
+    def filter_by_ext(self):
+        filter_by_ext(self.model)
 
     def search_file(self):
-        text, res = InputDialog().get_text("파일 검색", "검색할 파일 이름을 입력하세요.")
-        if res:
-            for root, dirs, files in os.walk('/'):
-                if text in files:
-                    MessageBox().show_information("파일 위치", os.path.join(root, text))
-                    return
-
-            MessageBox().show_warning("오류", "찾는 파일이 없습니다.")
+        search_file(self.model)
         
     def show_properties(self):
         if self.index:
@@ -114,3 +189,9 @@ class MainWindow(QWidget):
                                    f"접근 시간: {item_info.lastRead().toString()}")
             msg.setWindowTitle("파일 속성")
             msg.exec_()
+
+if __name__ == "__main__":
+    app = QApplication([])
+    ex = Main()
+    ex.show()
+    sys.exit(app.exec_())
