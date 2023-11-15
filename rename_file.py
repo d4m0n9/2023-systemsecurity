@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QInputDialog, QLineEdit
 
 def rename_item(model, index):
     os.chdir(model.filePath(model.parent(index)))
-    fname = model.fileName(index)
+    fname = model.fileName(index) 
     text, res = QInputDialog.getText(model, "이름 바꾸기", "바꿀 이름을 입력하세요.", QLineEdit.Normal, fname)
 
     if res:
