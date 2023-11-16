@@ -1,11 +1,14 @@
 import sys, os, shutil
 from PyQt5.QtWidgets import QApplication, QWidget, QTreeView, QVBoxLayout, QPushButton, QInputDialog, QLineEdit, \
     QMessageBox, QFileSystemModel, QMenu, QComboBox
-from PyQt5.QtCore import Qt, QFileInfo
+from PyQt5.QtCore import Qt, QFileInfo,QUrl
+from PyQt5.QtGui import QDesktopServices
 from file_operations import open_item, rename_item, delete_item
 from sort_operations import sort_by_ext, sort_by_date
 from filter_operations import filter_by_ext
 from search_operations import search_file
+
+
 
 
 class Main(QWidget):
@@ -161,6 +164,15 @@ class Main(QWidget):
                 self.tv.setRootIndex(parent_index)
                 self.tv.scrollTo(parent_index, QTreeView.PositionAtCenter)
                 return
+        elif event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+            if self.index.isValid():
+                if self.model.isDir(self.index):
+                    self.tv.setRootIndex(self.index)
+                    self.tv.scrollTo(self.index, QTreeView.PositionAtCenter)
+                else:
+                    item_path = self.model.filePath(self.index)
+                    url = QUrl.fromLocalFile(item_path)
+                    QDesktopServices.openUrl(url)
         super().keyPressEvent(event)
 
 
