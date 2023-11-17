@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QTreeView, QVBoxLayout, QPushButton, QFileSystemModel, QMenu, QComboBox
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtGui import QDesktopServices
 import actions
 
 class Main(QWidget):
@@ -102,17 +103,26 @@ class Main(QWidget):
     def FilterByExt(self):
         actions.FilterByExt(self)
 
-    # 파일 검색 동작 실행
+    # 파일/폴더 검색 동작 실행
     def SearchFile(self):
         actions.SearchFile(self)
 
-    # Backspace 키 누르면 뒤로가기 동작 실행
+    # Esc 키 누르면 뒤로가기, 파일/폴더 선택 후 Enter 키 누를 시 열기 동작 실행
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Backspace:
+        if event.key() == Qt.Key_Escape:
             current_index = self.tv.rootIndex()
             parent_index = self.model.parent(current_index)
             if parent_index.isValid():
                 self.tv.setRootIndex(parent_index)
                 self.tv.scrollTo(parent_index, QTreeView.PositionAtCenter)
                 return
+        elif event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+            if self.index.isValid():
+                if self.model.isDir(self.index):
+                    self.tv.setRootIndex(self.index)
+                    self.tv.scrollTo(self.index, QTreeView.PositionAtCenter)
+                else:
+                    item_path = self.model.filePath(self.index)
+                    url = QUrl.fromLocalFile(item_path)
+                    QDesktopServices.openUrl(url)
         super().keyPressEvent(event)
