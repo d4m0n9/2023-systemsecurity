@@ -2,6 +2,7 @@ import os
 import shutil
 from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox, QTreeView
 from PyQt5.QtCore import Qt
+# 파일 탐색기 관련 기능 (파일 열기, 이름 변경, 삭제, 확장자/날짜별 정렬, 확장자별 필터링, 파일 검색)
 
 # 선택된 파일/폴더 열기
 def Open(main, index):

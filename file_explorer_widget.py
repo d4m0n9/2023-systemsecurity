@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import QWidget, QTreeView, QVBoxLayout, QPushButton, QFileSystemModel, QMenu, QComboBox
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QDesktopServices
-import actions
+import file_explorer_functions
+# 파일 탐색기의 메인 위젯 클래스
 
 class Main(QWidget):
     # 초기화
@@ -81,31 +82,31 @@ class Main(QWidget):
 
     # 파일/폴더 열기 동작 실행
     def Open(self, index):
-        actions.Open(self, index)
+        file_explorer_functions.Open(self, index)
 
     # 이름 바꾸기 동작 실행
     def Rename(self):
-        actions.Rename(self)
+        file_explorer_functions.Rename(self)
 
     # 파일/폴더 삭제 동작 실행
     def Remove(self):
-        actions.Remove(self)
+        file_explorer_functions.Remove(self)
 
     # 확장자별 정렬 동작 실행
     def SortByExt(self):
-        actions.SortByExt(self)
+        file_explorer_functions.SortByExt(self)
 
     # 수정 날짜순 정렬 동작 실행
     def SortByDate(self):
-        actions.SortByDate(self)
+        file_explorer_functions.SortByDate(self)
 
     # 확장자별 필터링 동작 실행
     def FilterByExt(self):
-        actions.FilterByExt(self)
+        file_explorer_functions.FilterByExt(self)
 
     # 파일/폴더 검색 동작 실행
     def SearchFile(self):
-        actions.SearchFile(self)
+        file_explorer_functions.SearchFile(self)
 
     # Esc 키 누르면 뒤로가기, 파일/폴더 선택 후 Enter 키 누를 시 열기 동작 실행
     def keyPressEvent(self, event):
