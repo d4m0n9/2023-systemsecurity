@@ -1,44 +1,69 @@
 import os
 from datetime import datetime
-import logging.handlers
+import pytz
 
-class FileAccessLogger:
-    def __init__(self, log_dir, log_name):
-        self.log_path = os.path.join(log_dir, f"{log_name}.log")
-        self.init_logger()
+def get_recent_file_access_log(path):
+    # 경로 정규화
+    path = os.path.abspath(path)
 
-    def init_logger(self):
-        formatter = logging.Formatter("[%(asctime)s] %(message)s")
-        file_handler = logging.handlers.TimedRotatingFileHandler(
-            filename=self.log_path, when='midnight', interval=1, backupCount=7, encoding='utf-8'
-        )
-        file_handler.setFormatter(formatter)
+    try:
+        # 입력된 경로가 파일인지 디렉토리인지 확인
+        if os.path.isfile(path):
+            # 파일일 경우 최근 액세스 시간을 가져옴
+            last_access_time = get_last_access_time(path)
+            print(f"파일 경로: {path}")
+            print(f"최근 액세스 시간: {last_access_time}")
+        elif os.path.isdir(path):
+            # 디렉토리일 경우 디렉토리 내의 파일들에 대한 최근 액세스 시간 Top 10을 출력
+            get_recent_access_times_in_directory(path)
+        else:
+            print("올바른 경로가 아닙니다.")
+    except FileNotFoundError:
+        print(f"파일 또는 디렉토리를 찾을 수 없습니다: {path}")
+    except Exception as e:
+        print(f"오류 발생: {e}")
 
-        self.logger = logging.getLogger("FileAccessLogger")
-        self.logger.addHandler(file_handler)
-        self.logger.setLevel(logging.INFO)
+def get_recent_access_times_in_directory(directory_path):
+    # 디렉토리 내의 파일 목록을 가져옴
+    file_list = [f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f))]
 
-    def log_file_access(self, file_path):
-        file_access_time = datetime.fromtimestamp(os.path.getatime(file_path)).strftime("%Y-%m-%d %H:%M:%S")
-        self.logger.info(f"{file_access_time} - File accessed: {file_path}")
+    # 최근 액세스 시간을 저장할 리스트
+    recent_access_times = []
 
-    def view_file_access_log(self):
-        try:
-            with open(self.log_path, "r") as log_file:
-                file_access_log = log_file.readlines()
-                for log_entry in file_access_log:
-                    print(log_entry.strip())
-        except FileNotFoundError:
-            print("파일 열람 이력이 없습니다.")
+    # 각 파일의 최근 액세스 시간을 가져옴
+    for file_name in file_list:
+        file_path = os.path.join(directory_path, file_name)
+        last_access_time = get_last_access_time(file_path)
+        recent_access_times.append((file_name, last_access_time))
+
+    # 최근 액세스 시간이 최신순으로 정렬
+    recent_access_times.sort(key=lambda x: x[1], reverse=True)
+
+    # 최근 액세스 시간 Top 10을 출력
+    print(f"디렉토리 경로: {directory_path}")
+    print("최근 액세스 시간 Top 10:")
+    for file_name, access_time in recent_access_times[:10]:
+        print(f"{file_name}: {access_time}")
+
+def get_last_access_time(file_path):
+    # 파일의 속성을 가져옴
+    file_stat = os.stat(file_path)
+
+    # UTC에서 로컬 시간으로 변환
+    kst = pytz.timezone('Asia/Seoul')
+    last_access_time = datetime.utcfromtimestamp(file_stat.st_atime).replace(tzinfo=pytz.utc).astimezone(kst).strftime('%Y-%m-%d %H:%M:%S')
+
+    return last_access_time
+
+# 사용 예시
+file_or_directory_path = input("파일 또는 디렉토리 경로를 입력하세요: ")
+get_recent_file_access_log(file_or_directory_path)
 
 
-if __name__ == "__main__":
-    log = FileAccessLogger(".", "test")
 
-    # 예제로 파일 열람 기록 남기기
-    file_path_to_monitor = "C:\\Users\\damong\\Desktop\\test.txt"
-    log.log_file_access(file_path_to_monitor)
+#############################################################################
 
-    # 파일 열람 이력 조회 및 출력
-    log.view_file_access_log()
+# 디렉토리 입력하는 경우 그 디렉토리 내 파일 액세스 기록 10개 출력
+# 파일의 경우 마지막 액세스 기록 하나만 출력 << 10개로 고쳐볼 예정 근데 안 될 수도
 
+#############################################################################
