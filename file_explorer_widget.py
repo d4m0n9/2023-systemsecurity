@@ -1,8 +1,23 @@
-from PyQt5.QtWidgets import QWidget, QTreeView, QVBoxLayout, QPushButton, QFileSystemModel, QMenu, QComboBox
-from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtWidgets import QWidget, QTreeView, QVBoxLayout, QPushButton, QFileSystemModel, QMenu, QComboBox, QTreeWidgetItem, QAbstractItemView, QDialog, QLabel, QApplication
+from PyQt5.QtCore import Qt, QUrl, QModelIndex
 from PyQt5.QtGui import QDesktopServices
+from PyQt5.QtCore import QFileInfo, QStorageInfo
 import file_explorer_functions
-# 파일 탐색기의 메인 위젯 클래스
+import sys
+
+class PropertyDialog(QDialog):
+    def __init__(self, properties, parent=None):
+        super().__init__(parent)
+        
+        self.setWindowTitle("파일 속성")
+        
+        layout = QVBoxLayout()
+        
+        for key, value in properties.items():
+            label = QLabel(f"{key}: {value}")
+            layout.addWidget(label)
+        
+        self.setLayout(layout)
 
 class Main(QWidget):
     # 초기화
@@ -32,6 +47,7 @@ class Main(QWidget):
         self.tv.setColumnWidth(0, 250)
         self.tv.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tv.customContextMenuRequested.connect(self.openMenu)
+        self.tv.setSelectionMode(QAbstractItemView.ExtendedSelection)  # 다중 선택 가능
 
         layout = QVBoxLayout()
         layout.addWidget(self.cbOperations)
@@ -51,6 +67,7 @@ class Main(QWidget):
             deleteAction = menu.addAction("삭제")
             fileLogAction = menu.addAction("파일 로그")
             scanVirusAction = menu.addAction("악성 코드 스캔 및 진단")
+            propertiesAction = menu.addAction("속성")  # 파일 속성 확인 액션 추가
             action = menu.exec_(self.sender().viewport().mapToGlobal(position))
 
             if action == openAction:
@@ -59,6 +76,8 @@ class Main(QWidget):
                 self.Rename()
             elif action == deleteAction:
                 self.Remove()
+            elif action == propertiesAction:  # 파일 속성 확인 액션 처리
+                self.showFileProperties()
 
     # 버튼 / 콤보박스 동작 연결
     def setSlot(self):
@@ -127,3 +146,33 @@ class Main(QWidget):
                     url = QUrl.fromLocalFile(item_path)
                     QDesktopServices.openUrl(url)
         super().keyPressEvent(event)
+
+    # 파일 속성 표시
+    def showFileProperties(self):
+        """
+        선택된 파일의 속성을 표시합니다.
+        """
+        if self.index is not None:
+            file_info = QFileInfo(self.model.filePath(self.index))
+            attributes = {
+                "파일 경로(위치)": file_info.filePath(),
+                "만든 날짜": file_info.created().toString(Qt.DefaultLocaleLongDate),
+                "수정한 날짜": file_info.lastModified().toString(Qt.DefaultLocaleLongDate),
+                "엑세스한 날짜": file_info.lastRead().toString(Qt.DefaultLocaleLongDate),
+                "크기": file_info.size(),
+                "디스크 할당 크기": self.getDiskAllocationSize(file_info.filePath())
+            }
+
+            app = QApplication.instance()
+            dialog = PropertyDialog(attributes, parent=self)
+            dialog.exec_()
+            app.processEvents()
+
+    # 디스크 할당 크기 얻기
+    def getDiskAllocationSize(self, file_path):
+        """
+        파일의 디스크 할당 크기를 얻어옵니다.
+        """
+        storage_info = QStorageInfo(file_path)
+        allocation_size = storage_info.bytesTotal()
+        return allocation_size
