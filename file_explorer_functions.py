@@ -1,8 +1,10 @@
+# 파일 탐색기 관련 기능 (파일 열기, 이름 변경, 삭제, 확장자/날짜별 정렬, 확장자별 필터링, 파일 검색)
 import os
 import shutil
-from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox, QTreeView
-from PyQt5.QtCore import Qt
-# 파일 탐색기 관련 기능 (파일 열기, 이름 변경, 삭제, 확장자/날짜별 정렬, 확장자별 필터링, 파일 검색)
+from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox, QTreeView, QVBoxLayout, QDialog, QLabel
+from PyQt5.QtCore import Qt, QStorageInfo, QUrl
+from PyQt5.QtGui import QDesktopServices
+from PyQt5.QtCore import QFileInfo
 
 # 선택된 파일/폴더 열기
 def Open(main, index):
@@ -50,35 +52,78 @@ def Remove(main):
     except Exception as e:
         print("Error:", e)
 
-# 파일 확장자별 정렬
-def SortByExt(main):
-    main.model.sort(2, Qt.AscendingOrder)
-
-# 파일 수정 날짜순 정렬
-def SortByDate(main):
-    main.model.sort(3, Qt.DescendingOrder)
-
-# 사용자가 입력한 특정 확장자를 가진 파일 필터링하여 표시
-def FilterByExt(main):
-    text, res = QInputDialog.getText(main, "확장자별 필터링", "필터링할 확장자를 입력하세요. (예:.txt)", QLineEdit.Normal)
-    if res:
-        ext_filter_list=["*" + text]
-        main.model.setNameFilters(ext_filter_list)
-
-# 사용자가 입력한 파일 이름 검색
-def SearchFile(main):
-    text, res = QInputDialog.getText(main, "파일 검색", "검색할 파일 이름을 입력하세요.", QLineEdit.Normal)
-    if res:
-        root_index = main.tv.rootIndex()
-        SearchInDirectory(main, root_index, text)
 
 # 특정 디렉토리 내에서 파일을 검색하는 기능 수행
-def SearchInDirectory(main, index, text):
+def SearchInDirectory(main, index, text, results):
     for i in range(main.model.rowCount(index)):
         child_index = main.model.index(i, 0, index)
-        if main.model.fileName(child_index).lower().startswith(text.lower()):
-            main.tv.scrollTo(child_index, QTreeView.PositionAtCenter)
-            main.tv.setCurrentIndex(child_index)
-            return
+        if text in main.model.fileName(child_index).lower():
+            results.append(main.model.filePath(child_index)) 
         if main.model.hasChildren(child_index):
-            SearchInDirectory(main, child_index, text)
+            SearchInDirectory(main, child_index, text, results)
+
+# 사용자가 입력한 파일 이름 또는 확장자 검색
+def Search(main, text):
+        root_index = main.tv.rootIndex()
+        results = []
+        SearchInDirectory(main, root_index, text, results) 
+
+        # 검색 결과를 별도의 Dialog에 표시
+        dialog = QDialog(main)
+        dialog.setWindowTitle("검색 결과")
+        layout = QVBoxLayout()
+        if results:
+            for file_path in results:
+                label = QLabel(file_path)
+                layout.addWidget(label)
+        else:
+            label = QLabel("검색 결과가 없습니다.")
+            layout.addWidget(label)
+        dialog.setLayout(layout)
+        dialog.show()
+
+# 키 이벤트 처리
+def GoBack(main):
+    current_index = main.tv.rootIndex()
+    parent_index = main.model.parent(current_index)
+    if parent_index.isValid():
+        main.tv.setRootIndex(parent_index)
+        main.tv.scrollTo(parent_index, QTreeView.PositionAtCenter)
+def OpenItem(main):
+    if main.index.isValid():
+        if main.model.isDir(main.index):
+            main.tv.setRootIndex(main.index)
+            main.tv.scrollTo(main.index, QTreeView.PositionAtCenter)
+        else:
+            item_path = main.model.filePath(main.index)
+            url = QUrl.fromLocalFile(item_path)
+            QDesktopServices.openUrl(url)
+
+# 파일 속성 표시
+def ShowFileProperties(main):
+    if main.index is not None:
+        file_info = QFileInfo(main.model.filePath(main.index))
+        file_path = file_info.filePath()  # 파일의 경로 얻음
+        attributes = {
+        "파일 경로(위치)": file_path,
+        "만든 날짜": file_info.created().toString(Qt.DefaultLocaleLongDate),
+        "수정한 날짜": file_info.lastModified().toString(Qt.DefaultLocaleLongDate),
+        "엑세스한 날짜": file_info.lastRead().toString(Qt.DefaultLocaleLongDate),
+        "크기": file_info.size(),
+        "디스크 할당 크기": GetDiskAllocationSize(file_path)  # 파일의 디스크 할당 크기 얻음
+        }
+        
+        dialog = QDialog(main)
+        dialog.setWindowTitle("속성")
+        layout = QVBoxLayout()
+        for key, value in attributes.items():
+            label = QLabel(key + ": " + str(value))
+            layout.addWidget(label)
+        dialog.setLayout(layout)
+        dialog.show()
+        
+# 디스크 할당 크기 얻기       
+def GetDiskAllocationSize(file_path):
+    storage_info = QStorageInfo(file_path)
+    allocation_size = storage_info.bytesTotal()
+    return allocation_size
