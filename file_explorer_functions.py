@@ -89,6 +89,8 @@ def GoBack(main):
     if parent_index.isValid():
         main.tv.setRootIndex(parent_index)
         main.tv.scrollTo(parent_index, QTreeView.PositionAtCenter)
+    else:
+        main.tv.setRootIndex(main.model.index(""))
 def OpenItem(main):
     if main.index.isValid():
         if main.model.isDir(main.index):

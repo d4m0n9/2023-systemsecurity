@@ -7,7 +7,7 @@ class Main(QWidget):
     # 초기화
     def __init__(self):
         super().__init__()
-        self.path = "C:"
+        self.path = ""
         self.index = None
 
         self.tv = QTreeView(self)
@@ -106,3 +106,4 @@ class Main(QWidget):
     # 파일 속성 표시
     def ShowFileProperties(self):
         file_explorer_functions.ShowFileProperties(self)
+        
