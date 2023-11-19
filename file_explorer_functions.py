@@ -1,10 +1,14 @@
 # 파일 탐색기 관련 기능 (파일 열기, 이름 변경, 삭제, 확장자/날짜별 정렬, 확장자별 필터링, 파일 검색)
 import os
 import shutil
+import datetime
+import win32api
+import win32con
+import stat
 from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox, QTreeView, QVBoxLayout, QDialog, QLabel
-from PyQt5.QtCore import Qt, QStorageInfo, QUrl
+from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtCore import QFileInfo
+
 
 # 선택된 파일/폴더 열기
 def Open(main, index):
@@ -101,31 +105,60 @@ def OpenItem(main):
             url = QUrl.fromLocalFile(item_path)
             QDesktopServices.openUrl(url)
 
-# 파일 속성 표시
-def ShowFileProperties(main):
-    if main.index is not None:
-        file_info = QFileInfo(main.model.filePath(main.index))
-        file_path = file_info.filePath()  # 파일의 경로 얻음
-        attributes = {
-        "파일 경로(위치)": file_path,
-        "만든 날짜": file_info.created().toString(Qt.DefaultLocaleLongDate),
-        "수정한 날짜": file_info.lastModified().toString(Qt.DefaultLocaleLongDate),
-        "엑세스한 날짜": file_info.lastRead().toString(Qt.DefaultLocaleLongDate),
-        "크기": file_info.size(),
-        "디스크 할당 크기": GetDiskAllocationSize(file_path)  # 파일의 디스크 할당 크기 얻음
+def format_date(timestamp):
+    return datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+
+def get_file_name(file_path):
+    return os.path.basename(file_path)
+
+def get_file_extension(file_name):
+    return os.path.splitext(file_name)[1]
+
+def get_directory(file_path):
+    return os.path.dirname(file_path)
+
+def get_file_info(file_path):
+    try:
+        file_stat = os.stat(file_path)
+        file_info = {
+            'size': file_stat.st_size,
+            'ctime': file_stat.st_ctime,
+            'mtime': file_stat.st_mtime,
+            'atime': file_stat.st_atime,
+            'disk_usage': get_disk_usage(file_path)
         }
-        
-        dialog = QDialog(main)
-        dialog.setWindowTitle("속성")
-        layout = QVBoxLayout()
-        for key, value in attributes.items():
-            label = QLabel(key + ": " + str(value))
-            layout.addWidget(label)
-        dialog.setLayout(layout)
-        dialog.show()
-        
-# 디스크 할당 크기 얻기       
-def GetDiskAllocationSize(file_path):
-    storage_info = QStorageInfo(file_path)
-    allocation_size = storage_info.bytesTotal()
-    return allocation_size
+        return file_info
+    except OSError:
+        return None
+
+def get_disk_usage(path):
+    try:
+        total, used, free = shutil.disk_usage(os.path.dirname(path))
+        return total
+    except FileNotFoundError:
+        return 0
+
+def get_file_attributes(file_path):
+    try:
+        file_attributes = win32api.GetFileAttributes(file_path)
+        return file_attributes
+    except OSError:
+        return 0
+
+def ShowProperties(self):
+    if self.index is not None:
+        file_path = self.model.filePath(self.index)
+        file_attributes = get_file_attributes(file_path)
+        properties_dialog = PropertiesDialog(file_path, file_attributes)
+        properties_dialog.accepted.connect(lambda: self.apply_properties(file_path, properties_dialog.file_attributes))
+        properties_dialog.exec_()
+
+def apply_properties(file_path, file_attributes):
+    try:
+        if file_attributes & stat.FILE_ATTRIBUTE_READONLY:
+            win32api.SetFileAttributes(file_path, win32con.FILE_ATTRIBUTE_NORMAL)
+        else:
+            win32api.SetFileAttributes(file_path, win32con.FILE_ATTRIBUTE_READONLY)
+        return True, "속성이 성공적으로 적용되었습니다."
+    except OSError as e:
+        return False, f"속성 적용 중 오류가 발생했습니다: {str(e)}"
