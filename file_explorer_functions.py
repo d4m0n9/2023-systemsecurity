@@ -174,7 +174,7 @@ def ShowProperties(self):
     if self.index is not None:
         file_path = self.model.filePath(self.index)
         file_attributes = get_file_attributes(file_path)
-        properties_dialog = PropertiesDialog(file_path, file_attributes)
+        properties_dialog = self.PropertiesDialog(file_path, file_attributes) 
         properties_dialog.accepted.connect(lambda: self.apply_properties(file_path, properties_dialog.file_attributes))
         properties_dialog.exec_()
 
