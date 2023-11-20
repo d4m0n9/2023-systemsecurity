@@ -107,18 +107,23 @@ def OpenItem(main):
             url = QUrl.fromLocalFile(item_path)
             QDesktopServices.openUrl(url)
 
+#타임스탬프를 날짜 형식으로 변환하는 함수
 def format_date(timestamp):
     return datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
 
+#파일 경로에서 파일 이름을 추출하는 함수
 def get_file_name(file_path):
     return os.path.basename(file_path)
 
+#파일 이름에서 확장자를 추출하는 함수
 def get_file_extension(file_name):
     return os.path.splitext(file_name)[1]
 
+#파일 경로에서 디렉토리 경로를 추출하는 함수
 def get_directory(file_path):
     return os.path.dirname(file_path)
 
+#파일 정보를 가져오는 함수
 def get_file_info(file_path):
     try:
         file_stat = os.stat(file_path)
@@ -133,6 +138,7 @@ def get_file_info(file_path):
     except OSError:
         return None
 
+#디스크 사용량을 가져오는 함수
 def get_disk_usage(path):
     try:
         total, used, free = shutil.disk_usage(os.path.dirname(path))
@@ -140,6 +146,7 @@ def get_disk_usage(path):
     except FileNotFoundError:
         return 0
 
+#파일 속성을 가져오는 함수
 def get_file_attributes(file_path):
     try:
         file_attributes = win32api.GetFileAttributes(file_path)
@@ -147,6 +154,7 @@ def get_file_attributes(file_path):
     except OSError:
         return 0
 
+#파일 속성을 표시하는 함수
 def ShowProperties(self):
     if self.index is not None:
         file_path = self.model.filePath(self.index)
@@ -155,6 +163,7 @@ def ShowProperties(self):
         properties_dialog.accepted.connect(lambda: self.apply_properties(file_path, properties_dialog.file_attributes))
         properties_dialog.exec_()
 
+#파일 속성을 적용하는 함수
 def apply_properties(file_path, file_attributes):
     try:
         if file_attributes & stat.FILE_ATTRIBUTE_READONLY:
