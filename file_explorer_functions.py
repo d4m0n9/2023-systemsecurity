@@ -46,6 +46,8 @@ def Rename(main):
 def Remove(main):
     os.chdir(main.model.filePath(main.model.parent(main.index)))
     fname = main.model.fileName(main.index)
+    reply = QMessageBox.question(main, '삭제 확인',f"'{fname}'를 삭제하시겠습니까?",
+                                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
     try:
         if not main.model.isDir(main.index):
             os.unlink(fname)
