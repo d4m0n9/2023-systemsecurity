@@ -162,24 +162,31 @@ class Main(QWidget):
 
             result_dialog.exec_()
 
+# 파일 속성을 표시
 class PropertiesDialog(QDialog):
-    propertiesChanged = pyqtSignal(str, int)  # 속성 변경 시그널 정의
+    # 파일 속성이 변경될 때 발생하는 시그널
+    propertiesChanged = pyqtSignal(str, int) 
 
     def __init__(self, file_path, file_attributes, parent=None):
         super().__init__(parent)
+        # 창 제목 설정
         self.setWindowTitle("파일 속성")
         self.file_path = file_path
         self.file_attributes = file_attributes
 
         layout = QVBoxLayout()
+        # 파일 경로 표시
         layout.addWidget(QLabel(f"파일 경로: {self.file_path}"))
 
+        # 정보 레이아웃
         info_layout = QVBoxLayout()
+        # 파일명, 형식, 위치 표시
         info_layout.addWidget(QLabel(f"파일명: {file_explorer_functions.get_file_name(self.file_path)}"))
         info_layout.addWidget(QLabel(f"형식: {file_explorer_functions.get_file_extension(file_explorer_functions.get_file_name(self.file_path))}"))
         info_layout.addWidget(QLabel(f"위치: {file_explorer_functions.get_directory(self.file_path)}"))
         info_layout.addWidget(QFrame(frameShape=QFrame.HLine, frameShadow=QFrame.Sunken))
 
+        # 파일 정보 표시
         file_info = file_explorer_functions.get_file_info(self.file_path)
         if file_info is not None:
             info_layout.addWidget(QLabel(f"크기: {file_info['size']} 바이트"))
@@ -196,6 +203,7 @@ class PropertiesDialog(QDialog):
 
         info_layout.addWidget(QFrame(frameShape=QFrame.HLine, frameShadow=QFrame.Sunken))
 
+        # 체크 박스 레이아웃
         checkbox_layout = QHBoxLayout()
         self.readonly_checkbox = QCheckBox("읽기 전용")
         self.hidden_checkbox = QCheckBox("숨김")
@@ -203,6 +211,7 @@ class PropertiesDialog(QDialog):
         checkbox_layout.addWidget(self.hidden_checkbox)
         info_layout.addLayout(checkbox_layout)
 
+        # 버튼 레이아웃
         button_layout = QHBoxLayout()
         confirm_button = QPushButton("확인")
         confirm_button.clicked.connect(self.confirm_button_clicked)
@@ -214,6 +223,7 @@ class PropertiesDialog(QDialog):
         apply_button.clicked.connect(self.apply_button_clicked)
         button_layout.addWidget(apply_button)
 
+        # 메인 레이아웃
         main_layout = QVBoxLayout()
         main_layout.addLayout(info_layout)
         main_layout.addLayout(button_layout)
@@ -224,15 +234,19 @@ class PropertiesDialog(QDialog):
         self.setModal(True)
         self.setWindowModality(Qt.ApplicationModal)
 
+        # 읽기 전용 체크 박스 상태 설정
         self.readonly_checkbox.setChecked(bool(self.file_attributes & stat.S_IREAD))
+        # 숨김 체크 박스 상태 설정
         self.hidden_checkbox.setChecked(bool(self.file_attributes & stat.FILE_ATTRIBUTE_HIDDEN))
 
         self.previous_readonly_state = self.readonly_checkbox.isChecked()
         self.previous_hidden_state = self.hidden_checkbox.isChecked()
 
+    # 확인 버튼 클릭 시 호출되는 함수
     def confirm_button_clicked(self):
         self.accept()
 
+    # 적용 버튼 클릭 시 호출되는 함수
     def apply_button_clicked(self):
         file_attributes = self.file_attributes
 
@@ -248,12 +262,14 @@ class PropertiesDialog(QDialog):
             else:
                 file_attributes &= ~stat.FILE_ATTRIBUTE_HIDDEN
 
-        self.propertiesChanged.emit(self.file_path, file_attributes)  # 시그널 발생
+        # 속성 변경 시그널 발생
+        self.propertiesChanged.emit(self.file_path, file_attributes)  
 
+    # 취소 버튼 클릭 시 호출되는 함수
     def reject(self):
         self.close()
 
+    # 창 닫을 때 호출되는 함수
     def closeEvent(self, event):
         self.close()
-        
     
