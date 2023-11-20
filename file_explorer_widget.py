@@ -1,8 +1,8 @@
-from PyQt5.QtWidgets import QWidget, QTreeView, QVBoxLayout, QHBoxLayout, QFileSystemModel, QMenu, QLineEdit
+from PyQt5.QtWidgets import QWidget, QTreeView, QVBoxLayout, QHBoxLayout, QFileSystemModel, QMenu, QLineEdit, QScrollArea
 from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QWidget, QPushButton, QCheckBox, QMessageBox, QFrame
 from PyQt5.QtCore import Qt, pyqtSignal
 import file_explorer_functions, stat
-import malicious_diagnostics
+from malicious_diagnostics import scan_file, get_scan_report
 
 class Main(QWidget):
     # 초기화
@@ -67,6 +67,7 @@ class Main(QWidget):
             elif action == scanVirusAction:
                 self.ScanVirus()
 
+
     # Esc 키 누르면 뒤로가기, 파일/폴더 선택 후 Enter 키 누를 시 열기 동작 실행
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
@@ -122,6 +123,44 @@ class Main(QWidget):
             QMessageBox.information(self, "적용 완료", message)
         else:
             QMessageBox.warning(self, "오류", message)
+    
+    # 악성 코드 스캔 및 진단 기능을 사용해서 새 창을 띄워줌
+    def ScanVirus(self):
+        if self.index is not None:
+            file_path = self.model.filePath(self.index)
+        
+            # 'YOUR_API_KEY'를 실제 VirusTotal API key로 교체(지원's API)
+            api_key = 'd00e049b5870f0f4b82b1ce1f5a3879e87575961e03122b934f982dc46e66c19'
+
+            # 1단계: 스캔할 파일 업로드
+            upload_result = scan_file(api_key, file_path)
+
+            # 2단계: 검색이 완료될 때까지 대기(VirusTotal 정책에 따라 다름)
+            # 3단계: 스캔 보고서 검색
+            resource = upload_result['resource']
+            report = get_scan_report(api_key, resource)
+
+            # 4단계: 스캔 결과 인쇄
+            result_message = f"Scan results:\n\n" \
+                             f"  - Total scans: {report['total']}\n" \
+                             f"  - Positive scans: {report['positives']}\n" \
+                             f"  - Scan results: {report['scans']}"
+        
+            # 스캔 결과 인쇄 창
+            result_dialog = QDialog()
+            result_dialog.setWindowTitle("악성코드 스캔 결과")
+
+            scroll = QScrollArea(result_dialog)
+            label = QLabel(result_message)
+            label.setWordWrap(True)
+            scroll.setWidget(label)
+            scroll.setWidgetResizable(True)
+
+            layout = QVBoxLayout(result_dialog)
+            layout.addWidget(scroll)
+            result_dialog.setLayout(layout)
+
+            result_dialog.exec_()
 
 class PropertiesDialog(QDialog):
     propertiesChanged = pyqtSignal(str, int)  # 속성 변경 시그널 정의
@@ -216,22 +255,5 @@ class PropertiesDialog(QDialog):
 
     def closeEvent(self, event):
         self.close()
-
-    def ScanVirus(self):
-        api_key = 'd00e049b5870f0f4b82b1ce1f5a3879e87575961e03122b934f982dc46e66c19'
-        file_path = self.model.filePath(self.index)
-        report = malicious_diagnostics.virus_scan(api_key, file_path)
-
-        # 검색 결과를 별도의 Dialog에 표시
-        dialog = QDialog(self)
-        dialog.setWindowTitle("바이러스 스캔 결과")
-        layout = QVBoxLayout()
-        label = QLabel()
-        if report:
-            label.setText(
-                f"Scan results:\n  - Total scans: {report['total']}\n  - Positive scans: {report['positives']}\n  - Scan results: {report['scans']}")
-        else:
-            label.setText("스캔 결과가 없습니다.")
-        layout.addWidget(label)
-        dialog.setLayout(layout)
-        dialog.exec_()
+        
+    
