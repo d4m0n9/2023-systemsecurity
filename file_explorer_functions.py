@@ -138,13 +138,28 @@ def get_file_info(file_path):
     except OSError:
         return None
 
-#디스크 사용량을 가져오는 함수
+# 디스크 사용량을 가져오는 함수
 def get_disk_usage(path):
     try:
-        total, used, free = shutil.disk_usage(os.path.dirname(path))
-        return total
+        usage = shutil.disk_usage(os.path.dirname(path))
+        total = usage.total
+        formatted_usage = format_byte_size(total)
+        return formatted_usage
     except FileNotFoundError:
-        return 0
+        return "0"
+    
+# 바이트 크기를 포맷팅하는 함수
+def format_byte_size(size):
+    # 단위별 바이트 크기
+    units = ["바이트", "KB", "MB", "GB", "TB"]
+
+    # 1024로 나누어가면서 단위를 변경
+    for unit in units:
+        if size < 1024:
+            return f"{size:.0f}{unit}"
+        size /= 1024
+
+    return f"{size:.0f}{units[-1]}"
 
 #파일 속성을 가져오는 함수
 def get_file_attributes(file_path):
