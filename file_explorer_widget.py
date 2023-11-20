@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QWidget, QTreeView, QVBoxLayout, QHBoxLayout, QFileS
 from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QWidget, QPushButton, QCheckBox, QMessageBox, QFrame
 from PyQt5.QtCore import Qt, pyqtSignal
 import file_explorer_functions, stat
+import malicious_diagnostics
 
 class Main(QWidget):
     # 초기화
@@ -63,6 +64,8 @@ class Main(QWidget):
                 self.Remove()
             elif action == propertiesAction:
                 self.ShowProperties()
+            elif action == scanVirusAction:
+                self.ScanVirus()
 
     # Esc 키 누르면 뒤로가기, 파일/폴더 선택 후 Enter 키 누를 시 열기 동작 실행
     def keyPressEvent(self, event):
@@ -213,3 +216,22 @@ class PropertiesDialog(QDialog):
 
     def closeEvent(self, event):
         self.close()
+
+    def ScanVirus(self):
+        api_key = 'd00e049b5870f0f4b82b1ce1f5a3879e87575961e03122b934f982dc46e66c19'
+        file_path = self.model.filePath(self.index)
+        report = malicious_diagnostics.virus_scan(api_key, file_path)
+
+        # 검색 결과를 별도의 Dialog에 표시
+        dialog = QDialog(self)
+        dialog.setWindowTitle("바이러스 스캔 결과")
+        layout = QVBoxLayout()
+        label = QLabel()
+        if report:
+            label.setText(
+                f"Scan results:\n  - Total scans: {report['total']}\n  - Positive scans: {report['positives']}\n  - Scan results: {report['scans']}")
+        else:
+            label.setText("스캔 결과가 없습니다.")
+        layout.addWidget(label)
+        dialog.setLayout(layout)
+        dialog.exec_()
