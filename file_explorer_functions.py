@@ -178,13 +178,13 @@ def ShowProperties(self):
         properties_dialog.accepted.connect(lambda: self.apply_properties(file_path, properties_dialog.file_attributes))
         properties_dialog.exec_()
 
-#파일 속성을 적용하는 함수
-def apply_properties(file_path, file_attributes):
-    try:
-        if file_attributes & stat.FILE_ATTRIBUTE_READONLY:
-            win32api.SetFileAttributes(file_path, win32con.FILE_ATTRIBUTE_NORMAL)
-        else:
-            win32api.SetFileAttributes(file_path, win32con.FILE_ATTRIBUTE_READONLY)
-        return True, "속성이 성공적으로 적용되었습니다."
-    except OSError as e:
-        return False, f"속성 적용 중 오류가 발생했습니다: {str(e)}"
+# #파일 속성을 적용하는 함수
+# def apply_properties(file_path, file_attributes):
+#     try:
+#         if file_attributes & stat.FILE_ATTRIBUTE_READONLY:
+#             win32api.SetFileAttributes(file_path, win32con.FILE_ATTRIBUTE_NORMAL)
+#         else:
+#             win32api.SetFileAttributes(file_path, win32con.FILE_ATTRIBUTE_READONLY)
+#         return True, "속성이 성공적으로 적용되었습니다."
+#     except OSError as e:
+#         return False, f"속성 적용 중 오류가 발생했습니다: {str(e)}"
