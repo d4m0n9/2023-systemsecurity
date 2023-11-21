@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QTreeView, QVBoxLayout, QHBoxLayout, QFileSystemModel, QMenu, QLineEdit, QScrollArea
-from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QWidget, QPushButton, QCheckBox, QMessageBox, QFrame
+from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QWidget, QPushButton, QMessageBox, QFrame
 from PyQt5.QtCore import Qt, pyqtSignal
-import file_explorer_functions, stat
+import file_explorer_functions
 from malicious_diagnostics import scan_file, get_scan_report
 
 class Main(QWidget):
@@ -203,25 +203,26 @@ class PropertiesDialog(QDialog):
 
         info_layout.addWidget(QFrame(frameShape=QFrame.HLine, frameShadow=QFrame.Sunken))
 
-        # 체크 박스 레이아웃
-        checkbox_layout = QHBoxLayout()
-        self.readonly_checkbox = QCheckBox("읽기 전용")
-        self.hidden_checkbox = QCheckBox("숨김")
-        checkbox_layout.addWidget(self.readonly_checkbox)
-        checkbox_layout.addWidget(self.hidden_checkbox)
-        info_layout.addLayout(checkbox_layout)
+        # # 체크 박스 레이아웃
+        # checkbox_layout = QHBoxLayout()
+        # self.readonly_checkbox = QCheckBox("읽기 전용")
+        # self.hidden_checkbox = QCheckBox("숨김")
+        # checkbox_layout.addWidget(self.readonly_checkbox)
+        # checkbox_layout.addWidget(self.hidden_checkbox)
+        # info_layout.addLayout(checkbox_layout)
 
         # 버튼 레이아웃
         button_layout = QHBoxLayout()
         confirm_button = QPushButton("확인")
         confirm_button.clicked.connect(self.confirm_button_clicked)
         button_layout.addWidget(confirm_button)
-        cancel_button = QPushButton("취소")
-        cancel_button.clicked.connect(self.reject)
-        button_layout.addWidget(cancel_button)
-        apply_button = QPushButton("적용(A)")
-        apply_button.clicked.connect(self.apply_button_clicked)
-        button_layout.addWidget(apply_button)
+        # button_layout.addWidget(confirm_button)
+        # cancel_button = QPushButton("취소")
+        # cancel_button.clicked.connect(self.reject)
+        # button_layout.addWidget(cancel_button)
+        # apply_button = QPushButton("적용(A)")
+        # apply_button.clicked.connect(self.apply_button_clicked)
+        # button_layout.addWidget(apply_button)
 
         # 메인 레이아웃
         main_layout = QVBoxLayout()
@@ -234,36 +235,36 @@ class PropertiesDialog(QDialog):
         self.setModal(True)
         self.setWindowModality(Qt.ApplicationModal)
 
-        # 읽기 전용 체크 박스 상태 설정
-        self.readonly_checkbox.setChecked(bool(self.file_attributes & stat.S_IREAD))
-        # 숨김 체크 박스 상태 설정
-        self.hidden_checkbox.setChecked(bool(self.file_attributes & stat.FILE_ATTRIBUTE_HIDDEN))
+        # # 읽기 전용 체크 박스 상태 설정
+        # self.readonly_checkbox.setChecked(bool(self.file_attributes & stat.S_IREAD))
+        # # 숨김 체크 박스 상태 설정
+        # self.hidden_checkbox.setChecked(bool(self.file_attributes & stat.FILE_ATTRIBUTE_HIDDEN))
 
-        self.previous_readonly_state = self.readonly_checkbox.isChecked()
-        self.previous_hidden_state = self.hidden_checkbox.isChecked()
+        # self.previous_readonly_state = self.readonly_checkbox.isChecked()
+        # self.previous_hidden_state = self.hidden_checkbox.isChecked()
 
     # 확인 버튼 클릭 시 호출되는 함수
     def confirm_button_clicked(self):
         self.accept()
 
-    # 적용 버튼 클릭 시 호출되는 함수
-    def apply_button_clicked(self):
-        file_attributes = self.file_attributes
+    # # 적용 버튼 클릭 시 호출되는 함수
+    # def apply_button_clicked(self):
+    #     file_attributes = self.file_attributes
 
-        if self.readonly_checkbox.isChecked() != self.previous_readonly_state:
-            if self.readonly_checkbox.isChecked():
-                file_attributes |= stat.S_IREAD
-            else:
-                file_attributes &= ~stat.S_IREAD
+    #     if self.readonly_checkbox.isChecked() != self.previous_readonly_state:
+    #         if self.readonly_checkbox.isChecked():
+    #             file_attributes |= stat.S_IREAD
+    #         else:
+    #             file_attributes &= ~stat.S_IREAD
 
-        if self.hidden_checkbox.isChecked() != self.previous_hidden_state:
-            if self.hidden_checkbox.isChecked():
-                file_attributes |= stat.FILE_ATTRIBUTE_HIDDEN
-            else:
-                file_attributes &= ~stat.FILE_ATTRIBUTE_HIDDEN
+    #     if self.hidden_checkbox.isChecked() != self.previous_hidden_state:
+    #         if self.hidden_checkbox.isChecked():
+    #             file_attributes |= stat.FILE_ATTRIBUTE_HIDDEN
+    #         else:
+    #             file_attributes &= ~stat.FILE_ATTRIBUTE_HIDDEN
 
-        # 속성 변경 시그널 발생
-        self.propertiesChanged.emit(self.file_path, file_attributes)  
+    #     # 속성 변경 시그널 발생
+    #     self.propertiesChanged.emit(self.file_path, file_attributes)  
 
     # 취소 버튼 클릭 시 호출되는 함수
     def reject(self):
