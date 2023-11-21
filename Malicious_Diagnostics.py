@@ -21,8 +21,8 @@ def get_scan_report(api_key, resource):
 
 if __name__ == "__main__":
     # 'YOUR_API_KEY'를 실제 VirusTotal API key로 교체(지원's API)
-    api_key = 'd00e049b5870f0f4b82b1ce1f5a3879e87575961e03122b934f982dc46e66c19'
-
+    api_key = input("Enter your VirusTotal API key : ")
+    
     # 'file_to_upload.txt'의 파일 경로 교체
     file_path = input("Enter the path of the file: ")
     
