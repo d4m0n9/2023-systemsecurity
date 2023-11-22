@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QWidget, QTreeView, QVBoxLayout, QHBoxLayout, QFileSystemModel, QMenu, QLineEdit, QScrollArea
-from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QWidget, QPushButton, QMessageBox, QFrame
+from PyQt5.QtWidgets import QWidget, QTreeView, QVBoxLayout, QHBoxLayout, QFileSystemModel, QMenu, QLineEdit, QScrollArea, QInputDialog, \
+                            QDialog, QLabel, QVBoxLayout, QWidget, QPushButton, QMessageBox, QFrame
 from PyQt5.QtCore import Qt, pyqtSignal
 import file_explorer_functions
 from malicious_diagnostics import scan_file, get_scan_report
@@ -16,9 +16,8 @@ class Main(QWidget):
         self.searchEdit = QLineEdit(self)
         self.searchEdit.setPlaceholderText("검색")
         self.searchEdit.setFixedWidth(200)
-
         self.propertiesChanged = pyqtSignal(str, int)  # 속성 변경 시그널
-
+        
         self.setUi()
         self.setSlot()
 
@@ -124,43 +123,51 @@ class Main(QWidget):
         else:
             QMessageBox.warning(self, "오류", message)
     
+    # 사용자로부터 API 키를 입력 받는 메서드
+    def get_api_key(self):
+        api_key, ok = QInputDialog.getText(self, "API Key Input", "Enter your VirusTotal API key:")
+        if ok and api_key:
+            return api_key
+        else:
+            return None
+        
     # 악성 코드 스캔 및 진단 기능을 사용해서 새 창을 띄워줌
     def ScanVirus(self):
         if self.index is not None:
-            file_path = self.model.filePath(self.index)
+            self.api_key = self.get_api_key()  # 악성코드 스캔을 실행할 때 API 키를 입력받음
+            if self.api_key is not None:  # API 키가 있을 때만 스캔 수행
+                file_path = self.model.filePath(self.index)
+
+
+                # 1단계: 스캔할 파일 업로드
+                upload_result = scan_file(self.api_key, file_path)
+
+                # 2단계: 검색이 완료될 때까지 대기(VirusTotal 정책에 따라 다름)
+                # 3단계: 스캔 보고서 검색
+                resource = upload_result['resource']
+                report = get_scan_report(self.api_key, resource)
+
+                # 4단계: 스캔 결과 인쇄
+                result_message = f"Scan results:\n\n" \
+                                f"  - Total scans: {report['total']}\n" \
+                                f"  - Positive scans: {report['positives']}\n" \
+                                f"  - Scan results: {report['scans']}"
         
-            # 'YOUR_API_KEY'를 실제 VirusTotal API key로 교체(지원's API)
-            api_key = 'd00e049b5870f0f4b82b1ce1f5a3879e87575961e03122b934f982dc46e66c19'
+                # 스캔 결과 인쇄 창
+                result_dialog = QDialog()
+                result_dialog.setWindowTitle("악성코드 스캔 결과")
 
-            # 1단계: 스캔할 파일 업로드
-            upload_result = scan_file(api_key, file_path)
+                scroll = QScrollArea(result_dialog)
+                label = QLabel(result_message)
+                label.setWordWrap(True)
+                scroll.setWidget(label)
+                scroll.setWidgetResizable(True)
 
-            # 2단계: 검색이 완료될 때까지 대기(VirusTotal 정책에 따라 다름)
-            # 3단계: 스캔 보고서 검색
-            resource = upload_result['resource']
-            report = get_scan_report(api_key, resource)
+                layout = QVBoxLayout(result_dialog)
+                layout.addWidget(scroll)
+                result_dialog.setLayout(layout)
 
-            # 4단계: 스캔 결과 인쇄
-            result_message = f"Scan results:\n\n" \
-                             f"  - Total scans: {report['total']}\n" \
-                             f"  - Positive scans: {report['positives']}\n" \
-                             f"  - Scan results: {report['scans']}"
-        
-            # 스캔 결과 인쇄 창
-            result_dialog = QDialog()
-            result_dialog.setWindowTitle("악성코드 스캔 결과")
-
-            scroll = QScrollArea(result_dialog)
-            label = QLabel(result_message)
-            label.setWordWrap(True)
-            scroll.setWidget(label)
-            scroll.setWidgetResizable(True)
-
-            layout = QVBoxLayout(result_dialog)
-            layout.addWidget(scroll)
-            result_dialog.setLayout(layout)
-
-            result_dialog.exec_()
+                result_dialog.exec_()
 
 # 파일 속성을 표시
 class PropertiesDialog(QDialog):
