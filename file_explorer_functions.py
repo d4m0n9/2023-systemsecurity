@@ -21,6 +21,7 @@ def Open(main, index):
             except Exception as e:
                 QMessageBox.warning(main, "오류", "파일을 열 수 없습니다.")
 
+
 # 선택된 파일/폴더 이름 변경
 def Rename(main):
     os.chdir(main.model.filePath(main.model.parent(main.index)))
@@ -36,23 +37,25 @@ def Rename(main):
                     if not res:
                         return
                     main.ok = False
-                if main.ok:
-                    break
+            if main.ok:
+                break
         os.rename(fname, text)
+
 
 # 선택된 파일/폴더 삭제
 def Remove(main):
     os.chdir(main.model.filePath(main.model.parent(main.index)))
     fname = main.model.fileName(main.index)
-    reply = QMessageBox.question(main, '삭제 확인',f"'{fname}'를 삭제하시겠습니까?",
+    reply = QMessageBox.question(main, '삭제 확인', f"'{fname}'를 삭제하시겠습니까?",
                                  QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
     try:
-        if not main.model.isDir(main.index):
-            os.unlink(fname)
-            print(fname + ' 파일 삭제')
-        else:
-            shutil.rmtree(fname)
-            print(fname + ' 폴더 삭제')
+        if reply == QMessageBox.Yes:
+            if not main.model.isDir(main.index):
+                os.unlink(fname)
+                print(fname + ' 파일 삭제')
+            else:
+                shutil.rmtree(fname)
+                print(fname + ' 폴더 삭제')
     except Exception as e:
         print("Error:", e)
 
@@ -62,29 +65,31 @@ def SearchInDirectory(main, index, text, results):
     for i in range(main.model.rowCount(index)):
         child_index = main.model.index(i, 0, index)
         if text in main.model.fileName(child_index).lower():
-            results.append(main.model.filePath(child_index)) 
+            results.append(main.model.filePath(child_index))
         if main.model.hasChildren(child_index):
             SearchInDirectory(main, child_index, text, results)
 
+
 # 사용자가 입력한 파일 이름 또는 확장자 검색
 def Search(main, text):
-        root_index = main.tv.rootIndex()
-        results = []
-        SearchInDirectory(main, root_index, text, results) 
+    root_index = main.tv.rootIndex()
+    results = []
+    SearchInDirectory(main, root_index, text, results)
 
-        # 검색 결과를 별도의 Dialog에 표시
-        dialog = QDialog(main)
-        dialog.setWindowTitle("검색 결과")
-        layout = QVBoxLayout()
-        if results:
-            for file_path in results:
-                label = QLabel(file_path)
-                layout.addWidget(label)
-        else:
-            label = QLabel("검색 결과가 없습니다.")
+    # 검색 결과를 별도의 Dialog에 표시
+    dialog = QDialog(main)
+    dialog.setWindowTitle("검색 결과")
+    layout = QVBoxLayout()
+    if results:
+        for file_path in results:
+            label = QLabel(file_path)
             layout.addWidget(label)
-        dialog.setLayout(layout)
-        dialog.show()
+    else:
+        label = QLabel("검색 결과가 없습니다.")
+        layout.addWidget(label)
+    dialog.setLayout(layout)
+    dialog.show()
+
 
 # 키 이벤트 처리
 def GoBack(main):
@@ -95,6 +100,8 @@ def GoBack(main):
         main.tv.scrollTo(parent_index, QTreeView.PositionAtCenter)
     else:
         main.tv.setRootIndex(main.model.index(""))
+
+
 def OpenItem(main):
     if main.index.isValid():
         if main.model.isDir(main.index):
@@ -105,23 +112,28 @@ def OpenItem(main):
             url = QUrl.fromLocalFile(item_path)
             QDesktopServices.openUrl(url)
 
-#타임스탬프를 날짜 형식으로 변환하는 함수
+
+# 타임스탬프를 날짜 형식으로 변환하는 함수
 def format_date(timestamp):
     return datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
 
-#파일 경로에서 파일 이름을 추출하는 함수
+
+# 파일 경로에서 파일 이름을 추출하는 함수
 def get_file_name(file_path):
     return os.path.basename(file_path)
 
-#파일 이름에서 확장자를 추출하는 함수
+
+# 파일 이름에서 확장자를 추출하는 함수
 def get_file_extension(file_name):
     return os.path.splitext(file_name)[1]
 
-#파일 경로에서 디렉토리 경로를 추출하는 함수
+
+# 파일 경로에서 디렉토리 경로를 추출하는 함수
 def get_directory(file_path):
     return os.path.dirname(file_path)
 
-#파일 정보를 가져오는 함수
+
+# 파일 정보를 가져오는 함수
 def get_file_info(file_path):
     try:
         file_stat = os.stat(file_path)
@@ -136,6 +148,7 @@ def get_file_info(file_path):
     except OSError:
         return None
 
+
 # 디스크 사용량을 가져오는 함수
 def get_disk_usage(path):
     try:
@@ -145,7 +158,8 @@ def get_disk_usage(path):
         return formatted_usage
     except FileNotFoundError:
         return "0"
-    
+
+
 # 바이트 크기를 포맷팅하는 함수
 def format_byte_size(size):
     # 단위별 바이트 크기
@@ -159,7 +173,8 @@ def format_byte_size(size):
 
     return f"{size:.0f}{units[-1]}"
 
-#파일 속성을 가져오는 함수
+
+# 파일 속성을 가져오는 함수
 def get_file_attributes(file_path):
     try:
         file_attributes = win32api.GetFileAttributes(file_path)
@@ -167,12 +182,12 @@ def get_file_attributes(file_path):
     except OSError:
         return 0
 
-#파일 속성을 표시하는 함수
+
+# 파일 속성을 표시하는 함수
 def ShowProperties(self):
     if self.index is not None:
         file_path = self.model.filePath(self.index)
         file_attributes = get_file_attributes(file_path)
-        properties_dialog = self.PropertiesDialog(file_path, file_attributes) 
+        properties_dialog = self.PropertiesDialog(file_path, file_attributes)
         properties_dialog.accepted.connect(lambda: self.apply_properties(file_path, properties_dialog.file_attributes))
         properties_dialog.exec_()
-
