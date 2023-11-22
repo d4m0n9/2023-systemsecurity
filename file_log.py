@@ -33,7 +33,7 @@ def log_file_access(root_dir):
 
 if __name__ == "__main__":
     # 대상 디렉토리 개별 지정
-    target_directory = r'C:\Users\damong'
+    target_directory = r'C:'
     
     # 파일 접근 기록을 생성하고 콘솔에 출력합니다.
     log_file_access(target_directory)
