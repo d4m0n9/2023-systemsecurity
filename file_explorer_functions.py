@@ -6,6 +6,7 @@ import stat
 from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox, QTreeView, QVBoxLayout, QDialog, QLabel
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QDesktopServices
+import win32api
 
 
 # 선택된 파일/폴더 열기
