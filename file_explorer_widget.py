@@ -1,8 +1,10 @@
-from PyQt5.QtWidgets import QWidget, QTreeView, QVBoxLayout, QHBoxLayout, QFileSystemModel, QMenu, QLineEdit, QScrollArea, QInputDialog, \
-                            QDialog, QLabel, QVBoxLayout, QWidget, QPushButton, QMessageBox, QFrame
-from PyQt5.QtCore import Qt, pyqtSignal
 import file_explorer_functions
+from PyQt5.QtWidgets import QWidget, QTreeView, QVBoxLayout, QHBoxLayout, QFileSystemModel, QMenu, QLineEdit, QScrollArea, \
+                            QDialog, QLabel, QPushButton, QMessageBox, QFrame, QTextEdit, QDialogButtonBox
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QFont
 from malicious_diagnostics import scan_file, get_scan_report
+from file_log import log_file_access
 
 class Main(QWidget):
     # 초기화
@@ -14,16 +16,19 @@ class Main(QWidget):
         self.tv = QTreeView(self)
         self.model = QFileSystemModel()
         self.searchEdit = QLineEdit(self)
+        
         self.searchEdit.setPlaceholderText("검색")
         self.searchEdit.setFixedWidth(200)
-        self.propertiesChanged = pyqtSignal(str, int)  # 속성 변경 시그널
+        font = QFont("맑은 고딕", 8) 
+        self.searchEdit.setFont(font)
         
+        self.propertiesChanged = pyqtSignal(str, int)  # 속성 변경 시그널
         self.setUi()
         self.setSlot()
 
     # 인터페이스 설정
     def setUi(self):
-        self.setGeometry(300, 300, 700, 350)
+        self.setGeometry(300, 180, 700, 500)
         self.setWindowTitle("파일 탐색기")
         self.model.setRootPath(self.path)
         self.tv.setSortingEnabled(True)
@@ -39,7 +44,17 @@ class Main(QWidget):
         layout = QVBoxLayout()
         layout.addLayout(searchLayout)
         layout.addWidget(self.tv)
+        
+        self.fileLogTextEdit = QTextEdit(self)
+        self.fileLogTextEdit.setReadOnly(True)
+        self.fileLogTextEdit.setFixedHeight(150)
+        font = QFont("맑은 고딕", 9) 
+        self.fileLogTextEdit.setFont(font)
+        layout.addWidget(self.fileLogTextEdit)
+        
         self.setLayout(layout)
+        
+        self.updateFileLog()
 
     # 우클릭 메뉴
     def openMenu(self, position):
@@ -47,12 +62,13 @@ class Main(QWidget):
         indexes = self.sender().selectedIndexes()
         if len(indexes) > 0:
             menu = QMenu()
+            font = QFont("맑은 고딕", 9)
+            menu.setFont(font) 
             openAction = menu.addAction("열기")
             renameAction = menu.addAction("이름 바꾸기")
             deleteAction = menu.addAction("삭제")
-            fileLogAction = menu.addAction("로그")
-            scanVirusAction = menu.addAction("악성 코드 스캔 및 진단")
             propertiesAction = menu.addAction("속성")
+            scanVirusAction = menu.addAction("악성 코드 스캔 및 진단")
             action = menu.exec_(self.sender().viewport().mapToGlobal(position))
 
             if action == openAction:
@@ -67,21 +83,20 @@ class Main(QWidget):
                 self.ScanVirus()
 
 
-    # Esc 키 누르면 뒤로가기, 파일/폴더 선택 후 Enter 키 누를 시 열기 동작 실행
+    # Backspace 키 누르면 뒤로가기
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Escape:
+        if event.key() == Qt.Key_Backspace:
             file_explorer_functions.GoBack(self)
-        elif event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
-            file_explorer_functions.OpenItem(self)
         super().keyPressEvent(event)
 
     # 액션 이벤트 연결
     def setSlot(self):
-        self.tv.clicked.connect(self.SetIndex)
-        self.tv.doubleClicked.connect(self.Open)
-        self.searchEdit.returnPressed.connect(self.Search)
+        self.tv.clicked.connect(self.SetIndex) # 선택된 아이템에 대한 정보 처리
+        self.tv.doubleClicked.connect(self.updateFileLog) # 아이템 더블 클릭 시 파일 로그 업데이트
+        self.tv.doubleClicked.connect(self.Open) # 아이템 더블 클릭 시 열기 기능 실행
+        self.searchEdit.returnPressed.connect(self.Search) # 엔터 키 누를 시 검색 기능 실행
 
-    # 선택된 파일의 인덱스 저장
+    # 선택된 파일/폴더의 인덱스 저장
     def SetIndex(self, index):
         self.index = index
 
@@ -123,11 +138,42 @@ class Main(QWidget):
         else:
             QMessageBox.warning(self, "오류", message)
     
+    # 파일 로그 업데이트
+    def updateFileLog(self):
+        index = self.tv.currentIndex()
+        self.path = self.model.filePath(index)  # 선택된 디렉토리 경로 가져오기
+        if self.path:
+            file_log = log_file_access(self.path)
+            self.fileLogTextEdit.setPlainText(file_log)
+        
     # 사용자로부터 API 키를 입력 받는 메서드
     def get_api_key(self):
-        api_key, ok = QInputDialog.getText(self, "API Key Input", "Enter your VirusTotal API key:")
-        if ok and api_key:
-            return api_key
+        dialog = QDialog(self)
+
+        dialog.setWindowTitle("API Key Input")
+
+        layout = QVBoxLayout(dialog)
+
+        label = QLabel("Enter your VirusTotal API key:")
+        font = QFont("맑은 고딕", 9)
+        label.setFont(font)
+        layout.addWidget(label)
+
+        lineEdit = QLineEdit()
+        lineEdit.setFont(font)
+        layout.addWidget(lineEdit)
+
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+
+        for button in buttonBox.buttons():
+            button.setFont(font)
+
+        buttonBox.accepted.connect(dialog.accept)
+        buttonBox.rejected.connect(dialog.reject)
+        layout.addWidget(buttonBox)
+
+        if dialog.exec_() == QDialog.Accepted:
+            return lineEdit.text()
         else:
             return None
         
@@ -160,6 +206,8 @@ class Main(QWidget):
                 scroll = QScrollArea(result_dialog)
                 label = QLabel(result_message)
                 label.setWordWrap(True)
+                font = QFont("맑은 고딕", 9)
+                label.setFont(font)
                 scroll.setWidget(label)
                 scroll.setWidgetResizable(True)
 
@@ -210,26 +258,11 @@ class PropertiesDialog(QDialog):
 
         info_layout.addWidget(QFrame(frameShape=QFrame.HLine, frameShadow=QFrame.Sunken))
 
-        # # 체크 박스 레이아웃
-        # checkbox_layout = QHBoxLayout()
-        # self.readonly_checkbox = QCheckBox("읽기 전용")
-        # self.hidden_checkbox = QCheckBox("숨김")
-        # checkbox_layout.addWidget(self.readonly_checkbox)
-        # checkbox_layout.addWidget(self.hidden_checkbox)
-        # info_layout.addLayout(checkbox_layout)
-
         # 버튼 레이아웃
         button_layout = QHBoxLayout()
         confirm_button = QPushButton("확인")
         confirm_button.clicked.connect(self.confirm_button_clicked)
         button_layout.addWidget(confirm_button)
-        # button_layout.addWidget(confirm_button)
-        # cancel_button = QPushButton("취소")
-        # cancel_button.clicked.connect(self.reject)
-        # button_layout.addWidget(cancel_button)
-        # apply_button = QPushButton("적용(A)")
-        # apply_button.clicked.connect(self.apply_button_clicked)
-        # button_layout.addWidget(apply_button)
 
         # 메인 레이아웃
         main_layout = QVBoxLayout()
@@ -242,36 +275,9 @@ class PropertiesDialog(QDialog):
         self.setModal(True)
         self.setWindowModality(Qt.ApplicationModal)
 
-        # # 읽기 전용 체크 박스 상태 설정
-        # self.readonly_checkbox.setChecked(bool(self.file_attributes & stat.S_IREAD))
-        # # 숨김 체크 박스 상태 설정
-        # self.hidden_checkbox.setChecked(bool(self.file_attributes & stat.FILE_ATTRIBUTE_HIDDEN))
-
-        # self.previous_readonly_state = self.readonly_checkbox.isChecked()
-        # self.previous_hidden_state = self.hidden_checkbox.isChecked()
-
     # 확인 버튼 클릭 시 호출되는 함수
     def confirm_button_clicked(self):
         self.accept()
-
-    # # 적용 버튼 클릭 시 호출되는 함수
-    # def apply_button_clicked(self):
-    #     file_attributes = self.file_attributes
-
-    #     if self.readonly_checkbox.isChecked() != self.previous_readonly_state:
-    #         if self.readonly_checkbox.isChecked():
-    #             file_attributes |= stat.S_IREAD
-    #         else:
-    #             file_attributes &= ~stat.S_IREAD
-
-    #     if self.hidden_checkbox.isChecked() != self.previous_hidden_state:
-    #         if self.hidden_checkbox.isChecked():
-    #             file_attributes |= stat.FILE_ATTRIBUTE_HIDDEN
-    #         else:
-    #             file_attributes &= ~stat.FILE_ATTRIBUTE_HIDDEN
-
-    #     # 속성 변경 시그널 발생
-    #     self.propertiesChanged.emit(self.file_path, file_attributes)  
 
     # 취소 버튼 클릭 시 호출되는 함수
     def reject(self):
