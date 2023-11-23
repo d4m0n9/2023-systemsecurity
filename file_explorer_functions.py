@@ -2,7 +2,6 @@
 import os
 import shutil
 import datetime
-import stat
 from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox, QTreeView, QVBoxLayout, QDialog, QLabel
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QDesktopServices
