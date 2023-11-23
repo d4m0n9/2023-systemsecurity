@@ -7,12 +7,14 @@ from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox, QTreeView, QVB
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QDesktopServices
 import win32api
+from file_log import log_file_access
 
 
 # 선택된 파일/폴더 열기
 def Open(main, index):
     if index.isValid() and index.column() == 0:
         item_path = main.model.filePath(index)
+        log_file_access(item_path)
         if main.model.isDir(index):
             main.tv.setRootIndex(index)
             main.tv.scrollTo(index, QTreeView.PositionAtCenter)
@@ -21,6 +23,9 @@ def Open(main, index):
                 os.startfile(item_path)
             except Exception as e:
                 QMessageBox.warning(main, "오류", "파일을 열 수 없습니다.")
+                exit()
+
+    return item_path
 
 
 # 선택된 파일/폴더 이름 변경
