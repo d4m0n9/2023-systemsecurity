@@ -2,8 +2,8 @@ import os
 import datetime
 
 def log_file_access(root_dir):
-    print('File Access Log - {}'.format(datetime.datetime.now()))
-    print('-' * 50)
+    file_log = 'File Access Log - {}\n'.format(datetime.datetime.now())
+    file_log += '-' * 50 + '\n'
     
     # 파일들에 대한 정보를 저장할 리스트
     file_info_list = []
@@ -30,5 +30,6 @@ def log_file_access(root_dir):
     
     # 10개 항목만 출력하나 상의 후 출력 개수 수정할 필요 있음
     for file_info in file_info_list[:10]:
-        print('{} - {}'.format(file_info[0], file_info[1]))
+        file_log += '{} - {}\n'.format(file_info[0], file_info[1])
 
+    return file_log
