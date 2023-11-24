@@ -28,7 +28,7 @@ class Main(QWidget):
 
     # 인터페이스 설정
     def setUi(self):
-        self.setGeometry(300, 180, 700, 500)
+        self.setGeometry(300, 150, 700, 500)
         self.setWindowTitle("파일 탐색기")
         self.model.setRootPath(self.path)
         self.tv.setSortingEnabled(True)
@@ -194,13 +194,16 @@ class Main(QWidget):
                 report = get_scan_report(self.api_key, resource)
 
                 # 4단계: 스캔 결과 인쇄
-                result_message = f"Scan results:\n\n" \
+                result_message = f" Scan results:\n\n" \
                                 f"  - Total scans: {report['total']}\n" \
                                 f"  - Positive scans: {report['positives']}\n" \
-                                f"  - Scan results: {report['scans']}"
+                                f"  - Scan results:"
+                for scanner, result in report['scans'].items():
+                    result_message += f"\n    - {scanner}: {result}"
         
                 # 스캔 결과 인쇄 창
                 result_dialog = QDialog()
+                result_dialog.setGeometry(340, 200, 620, 400)
                 result_dialog.setWindowTitle("악성코드 스캔 결과")
 
                 scroll = QScrollArea(result_dialog)
@@ -286,4 +289,3 @@ class PropertiesDialog(QDialog):
     # 창 닫을 때 호출되는 함수
     def closeEvent(self, event):
         self.close()
-    
