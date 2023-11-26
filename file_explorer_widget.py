@@ -235,37 +235,71 @@ class PropertiesDialog(QDialog):
         self.file_attributes = file_attributes
 
         layout = QVBoxLayout()
+        font = QFont("맑은 고딕", 9)
+        
         # 파일 경로 표시
-        layout.addWidget(QLabel(f"파일 경로: {self.file_path}"))
-
+        path_label = QLabel(f"파일 경로: {self.file_path}")
+        path_label.setFont(font)  
+        layout.addWidget(path_label)
+        
         # 정보 레이아웃
         info_layout = QVBoxLayout()
         # 파일명, 형식, 위치 표시
-        info_layout.addWidget(QLabel(f"파일명: {file_explorer_functions.get_file_name(self.file_path)}"))
-        info_layout.addWidget(QLabel(f"형식: {file_explorer_functions.get_file_extension(file_explorer_functions.get_file_name(self.file_path))}"))
-        info_layout.addWidget(QLabel(f"위치: {file_explorer_functions.get_directory(self.file_path)}"))
+        file_name_label = QLabel(f"파일명: {file_explorer_functions.get_file_name(self.file_path)}")
+        file_name_label.setFont(font)  
+        info_layout.addWidget(file_name_label)
+        
+        file_type_label = QLabel(f"형식: {file_explorer_functions.get_file_extension(file_explorer_functions.get_file_name(self.file_path))}")
+        file_type_label.setFont(font)  
+        info_layout.addWidget(file_type_label)
+        
+        file_location_label = QLabel(f"위치: {file_explorer_functions.get_directory(self.file_path)}")
+        file_location_label.setFont(font) 
+        info_layout.addWidget(file_location_label)
+        
         info_layout.addWidget(QFrame(frameShape=QFrame.HLine, frameShadow=QFrame.Sunken))
 
         # 파일 정보 표시
         file_info = file_explorer_functions.get_file_info(self.file_path)
         if file_info is not None:
-            info_layout.addWidget(QLabel(f"크기: {file_info['size']} 바이트"))
-            info_layout.addWidget(QLabel(f"만든 날짜: {file_explorer_functions.format_date(file_info['ctime'])}"))
-            info_layout.addWidget(QLabel(f"수정한 날짜: {file_explorer_functions.format_date(file_info['mtime'])}"))
-            info_layout.addWidget(QLabel(f"액세스한 날짜: {file_explorer_functions.format_date(file_info['atime'])}"))
+            file_size_label = QLabel(f"크기: {file_info['size']} 바이트")
+            file_size_label.setFont(font)
+            info_layout.addWidget(file_size_label)
+            
+            file_ctime_label = QLabel(f"만든 날짜: {file_explorer_functions.format_date(file_info['ctime'])}")
+            file_ctime_label.setFont(font)  
+            info_layout.addWidget(file_ctime_label)
+            
+            file_mtime_label = QLabel(f"수정한 날짜: {file_explorer_functions.format_date(file_info['mtime'])}")
+            file_mtime_label.setFont(font)  
+            info_layout.addWidget(file_mtime_label)
+            
+            file_atime_label = QLabel(f"액세스한 날짜: {file_explorer_functions.format_date(file_info['atime'])}")
+            file_atime_label.setFont(font)  
+            info_layout.addWidget(file_atime_label)
+            
             info_layout.addWidget(QFrame(frameShape=QFrame.HLine, frameShadow=QFrame.Sunken))
+            
             if 'disk_usage' in file_info:
-                info_layout.addWidget(QLabel(f"디스크 할당 크기: {file_info['disk_usage']} 바이트"))
+                disk_usage_label = QLabel(f"디스크 할당 크기: {file_info['disk_usage']} 바이트")
+                disk_usage_label.setFont(font)  
+                info_layout.addWidget(disk_usage_label)
             else:
-                info_layout.addWidget(QLabel("디스크 할당 크기 정보를 가져올 수 없습니다."))
+                disk_usage_error_label = QLabel("디스크 할당 크기 정보를 가져올 수 없습니다.")
+                disk_usage_error_label.setFont(font) 
+                info_layout.addWidget(disk_usage_error_label)
+                
         else:
-            info_layout.addWidget(QLabel("파일 정보를 가져올 수 없습니다."))
+            file_info_error_label = QLabel("파일 정보를 가져올 수 없습니다.")
+            file_info_error_label.setFont(font)
+            info_layout.addWidget(file_info_error_label)
 
         info_layout.addWidget(QFrame(frameShape=QFrame.HLine, frameShadow=QFrame.Sunken))
 
         # 버튼 레이아웃
         button_layout = QHBoxLayout()
         confirm_button = QPushButton("확인")
+        confirm_button.setFont(font)
         confirm_button.clicked.connect(self.confirm_button_clicked)
         button_layout.addWidget(confirm_button)
 
