@@ -321,7 +321,3 @@ class PropertiesDialog(QDialog):
     # 취소 버튼 클릭 시 호출되는 함수
     def reject(self):
         self.close()
-
-    # 창 닫을 때 호출되는 함수
-    def closeEvent(self, event):
-        self.close()
