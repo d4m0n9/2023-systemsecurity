@@ -68,7 +68,9 @@ class Main(QWidget):
             renameAction = menu.addAction("이름 바꾸기")
             deleteAction = menu.addAction("삭제")
             propertiesAction = menu.addAction("속성")
-            scanVirusAction = menu.addAction("악성 코드 스캔 및 진단")
+            fileInfo = self.model.fileInfo(self.index)
+            if not fileInfo.isDir():  # 파일일 때만
+                scanVirusAction = menu.addAction("악성코드 스캔")
             action = menu.exec_(self.sender().viewport().mapToGlobal(position))
 
             if action == openAction:
@@ -79,7 +81,7 @@ class Main(QWidget):
                 self.Remove()
             elif action == propertiesAction:
                 self.ShowProperties()
-            elif action == scanVirusAction:
+            elif 'scanVirusAction' in locals() and action == scanVirusAction:
                 self.ScanVirus()
 
 
