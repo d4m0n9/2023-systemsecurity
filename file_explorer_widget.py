@@ -235,7 +235,12 @@ def get_disk_usage(file_path):
     clusterSize = sectorsPerCluster.value * bytesPerSector.value  # 클러스터 크기 (바이트)
     fileSize = os.path.getsize(file_path)  # 파일 크기 (바이트)
 
-    return ((fileSize // clusterSize) + 1) * clusterSize  # 디스크 할당 크기 (바이트)
+    disk_usage = ((fileSize // clusterSize) + 1) * clusterSize  # 디스크 할당 크기 (바이트)
+
+    # 천 단위로 끊어서 표시
+    disk_usage_formatted = f"{disk_usage:,}"
+
+    return disk_usage_formatted
     
 # 파일 속성을 표시
 class PropertiesDialog(QDialog):
@@ -277,7 +282,7 @@ class PropertiesDialog(QDialog):
         # 파일 정보 표시
         file_info = file_explorer_functions.get_file_info(self.file_path)
         if file_info is not None:
-            file_size_label = QLabel(f"크기: {file_info['size']} byte")
+            file_size_label = QLabel(f"크기: {format(file_info['size'], ',')} byte")
             file_size_label.setFont(font)
             info_layout.addWidget(file_size_label)
 
