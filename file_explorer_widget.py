@@ -1,4 +1,6 @@
 import file_explorer_functions
+import os
+import ctypes
 from PyQt5.QtWidgets import QWidget, QTreeView, QVBoxLayout, QHBoxLayout, QFileSystemModel, QMenu, QLineEdit, QScrollArea, \
                             QDialog, QLabel, QPushButton, QMessageBox, QFrame, QTextEdit, QDialogButtonBox
 from PyQt5.QtCore import Qt, pyqtSignal
@@ -222,6 +224,18 @@ class Main(QWidget):
 
                 result_dialog.exec_()
 
+def get_disk_usage(file_path):
+    sectorsPerCluster = ctypes.c_ulonglong(0)
+    bytesPerSector = ctypes.c_ulonglong(0)
+    rootPathName = ctypes.c_wchar_p(file_path[:3])  # 드라이브 경로 (예: 'C:\\')
+
+    ctypes.windll.kernel32.GetDiskFreeSpaceW(rootPathName, ctypes.byref(sectorsPerCluster), ctypes.byref(bytesPerSector), None, None)
+
+    clusterSize = sectorsPerCluster.value * bytesPerSector.value  # 클러스터 크기 (바이트)
+    fileSize = os.path.getsize(file_path)  # 파일 크기 (바이트)
+
+    return ((fileSize // clusterSize) + 1) * clusterSize  # 디스크 할당 크기 (바이트)
+    
 # 파일 속성을 표시
 class PropertiesDialog(QDialog):
     # 파일 속성이 변경될 때 발생하는 시그널
@@ -266,14 +280,10 @@ class PropertiesDialog(QDialog):
             file_size_label.setFont(font)
             info_layout.addWidget(file_size_label)
 
-            if 'disk_usage' in file_info:
-                disk_usage_label = QLabel(f"디스크 할당 크기: {file_info['disk_usage']} byte")
-                disk_usage_label.setFont(font)  
-                info_layout.addWidget(disk_usage_label)
-            else:
-                disk_usage_error_label = QLabel("디스크 할당 크기 정보를 가져올 수 없습니다.")
-                disk_usage_error_label.setFont(font) 
-                info_layout.addWidget(disk_usage_error_label)
+            # 디스크 사용량 표시
+            disk_usage_label = QLabel(f"디스크 할당 크기: {get_disk_usage(self.file_path)} byte")
+            disk_usage_label.setFont(font)  
+            info_layout.addWidget(disk_usage_label)
             info_layout.addWidget(QFrame(frameShape=QFrame.HLine, frameShadow=QFrame.Sunken))
             
             file_ctime_label = QLabel(f"만든 날짜: {file_explorer_functions.format_date(file_info['ctime'])}")
