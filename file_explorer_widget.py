@@ -262,9 +262,19 @@ class PropertiesDialog(QDialog):
         # 파일 정보 표시
         file_info = file_explorer_functions.get_file_info(self.file_path)
         if file_info is not None:
-            file_size_label = QLabel(f"크기: {file_info['size']} 바이트")
+            file_size_label = QLabel(f"크기: {file_info['size']} byte")
             file_size_label.setFont(font)
             info_layout.addWidget(file_size_label)
+
+            if 'disk_usage' in file_info:
+                disk_usage_label = QLabel(f"디스크 할당 크기: {file_info['disk_usage']} byte")
+                disk_usage_label.setFont(font)  
+                info_layout.addWidget(disk_usage_label)
+            else:
+                disk_usage_error_label = QLabel("디스크 할당 크기 정보를 가져올 수 없습니다.")
+                disk_usage_error_label.setFont(font) 
+                info_layout.addWidget(disk_usage_error_label)
+            info_layout.addWidget(QFrame(frameShape=QFrame.HLine, frameShadow=QFrame.Sunken))
             
             file_ctime_label = QLabel(f"만든 날짜: {file_explorer_functions.format_date(file_info['ctime'])}")
             file_ctime_label.setFont(font)  
@@ -277,18 +287,7 @@ class PropertiesDialog(QDialog):
             file_atime_label = QLabel(f"액세스한 날짜: {file_explorer_functions.format_date(file_info['atime'])}")
             file_atime_label.setFont(font)  
             info_layout.addWidget(file_atime_label)
-            
-            info_layout.addWidget(QFrame(frameShape=QFrame.HLine, frameShadow=QFrame.Sunken))
-            
-            if 'disk_usage' in file_info:
-                disk_usage_label = QLabel(f"디스크 할당 크기: {file_info['disk_usage']} 바이트")
-                disk_usage_label.setFont(font)  
-                info_layout.addWidget(disk_usage_label)
-            else:
-                disk_usage_error_label = QLabel("디스크 할당 크기 정보를 가져올 수 없습니다.")
-                disk_usage_error_label.setFont(font) 
-                info_layout.addWidget(disk_usage_error_label)
-                
+    
         else:
             file_info_error_label = QLabel("파일 정보를 가져올 수 없습니다.")
             file_info_error_label.setFont(font)
