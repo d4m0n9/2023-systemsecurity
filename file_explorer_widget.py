@@ -151,7 +151,6 @@ class Main(QWidget):
     # 사용자로부터 API 키를 입력 받는 메서드
     def get_api_key(self):
         dialog = QDialog(self)
-
         dialog.setWindowTitle("API Key Input")
 
         layout = QVBoxLayout(dialog)
@@ -164,6 +163,11 @@ class Main(QWidget):
         lineEdit = QLineEdit()
         lineEdit.setFont(font)
         layout.addWidget(lineEdit)
+
+        helpLabel = QLabel("일반 사용자 : 30초마다 스캔 가능\n비즈니스 사용자 : 무제한 스캔 가능")  # 도움말 레이블
+        helpLabel.setFont(QFont("맑은 고딕", 7))
+        helpLabel.setStyleSheet("color: gray;")
+        layout.addWidget(helpLabel)
 
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
 

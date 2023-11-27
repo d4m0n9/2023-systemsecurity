@@ -3,8 +3,6 @@ import os
 import shutil
 import datetime
 from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox, QTreeView, QVBoxLayout, QDialog, QLabel
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QDesktopServices
 import win32api
 from file_log import log_file_access
 
@@ -105,17 +103,6 @@ def GoBack(main):
         main.tv.scrollTo(parent_index, QTreeView.PositionAtCenter)
     else:
         main.tv.setRootIndex(main.model.index(""))
-
-
-def OpenItem(main):
-    if main.index.isValid():
-        if main.model.isDir(main.index):
-            main.tv.setRootIndex(main.index)
-            main.tv.scrollTo(main.index, QTreeView.PositionAtCenter)
-        else:
-            item_path = main.model.filePath(main.index)
-            url = QUrl.fromLocalFile(item_path)
-            QDesktopServices.openUrl(url)
 
 
 # 타임스탬프를 날짜 형식으로 변환하는 함수
