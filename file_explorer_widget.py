@@ -317,7 +317,3 @@ class PropertiesDialog(QDialog):
     # 확인 버튼 클릭 시 호출되는 함수
     def confirm_button_clicked(self):
         self.accept()
-
-    # 취소 버튼 클릭 시 호출되는 함수
-    def reject(self):
-        self.close()
