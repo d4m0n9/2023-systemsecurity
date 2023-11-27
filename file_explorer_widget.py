@@ -114,10 +114,6 @@ class Main(QWidget):
     def Remove(self):
         file_explorer_functions.Remove(self)
 
-    # 확장자별 필터링 동작 실행
-    def FilterByExt(self):
-        file_explorer_functions.FilterByExt(self)
-
     # 파일/폴더 검색 동작 실행
     def Search(self):
         text = self.searchEdit.text()
