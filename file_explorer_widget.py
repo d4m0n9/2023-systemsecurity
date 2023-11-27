@@ -224,6 +224,7 @@ class Main(QWidget):
 
                 result_dialog.exec_()
 
+# 파일의 디스크 사용량을 반환하는 함수
 def get_disk_usage(file_path):
     sectorsPerCluster = ctypes.c_ulonglong(0)
     bytesPerSector = ctypes.c_ulonglong(0)
