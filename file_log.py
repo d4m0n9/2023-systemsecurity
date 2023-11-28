@@ -39,11 +39,7 @@ def log_file_access(root_dir):
     for file_info in file_info_list[:20]:
         print('{} - {}'.format(file_info[0], file_info[1]))
 
-if __name__ == "__main__":
-    # 모든 드라이브 가져오기
     available_drives = get_available_drives()
-
-    # 각 드라이브에 대해 파일 접근 기록 생성 및 콘솔에 출력
     for drive in available_drives:
         print(f"Generating file access log for drive {drive}...")
         log_file_access(drive)
