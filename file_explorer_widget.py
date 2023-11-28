@@ -188,7 +188,7 @@ class Main(QWidget):
         lineEdit.setFont(font)
         layout.addWidget(lineEdit)
 
-        helpLabel = QLabel("<Public API>\n분당 요청 제한 : 2개\n일일 요청 제한 : 500개 \n월별 요청 제한 : 15.5K개\n\n<Premium API>\n요청 제한 없음")  # 도움말 레이블
+        helpLabel = QLabel("<Public API>\n분당 요청 제한 : 4개\n일일 요청 제한 : 500개 \n월별 요청 제한 : 15.5K개\n\n<Premium API>\n요청 제한 없음")  # 도움말 레이블
         helpLabel.setFont(QFont("맑은 고딕", 7))
         helpLabel.setStyleSheet("color: gray;")
         layout.addWidget(helpLabel)
