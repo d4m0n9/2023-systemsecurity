@@ -87,7 +87,7 @@ class Main(QWidget):
         menu = QMenu()
         menu.setFont(QFont("맑은 고딕", 8))
         openAction = menu.addAction("열기")
-        renameAction = menu.addAction("이름 바꾸기")
+        renameAction = menu.addAction("이름 변경")
         deleteAction = menu.addAction("삭제")
         propertiesAction = menu.addAction("속성")
 
