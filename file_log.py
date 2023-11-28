@@ -10,8 +10,8 @@ def get_available_drives():
     return drives
 
 def log_file_access(root_dir):
-    print('파일 접근 기록 - {}'.format(datetime.datetime.now()))
-    print('-' * 50)
+    file_log = 'File Access Log - {}'.format(datetime.datetime.now())
+    file_log += '-' * 50 + '\n'
 
     # 파일들에 대한 정보를 저장할 리스트
     file_info_list = []
@@ -37,9 +37,17 @@ def log_file_access(root_dir):
 
     # 20개 항목만 출력하나 상의 후 출력 개수 수정할 필요 있음
     for file_info in file_info_list[:20]:
-        print('{} - {}'.format(file_info[0], file_info[1]))
+        file_log += '{} - {}'.format(file_info[0], file_info[1])
+        
+    return file_log
 
-    available_drives = get_available_drives()
-    for drive in available_drives:
-        print(f"Generating file access log for drive {drive}...")
-        log_file_access(drive)
+# if __name__ == "__main__":
+#     # 모든 드라이브 가져오기
+#     available_drives = get_available_drives()
+# 
+#     # 각 드라이브에 대해 파일 접근 기록 생성 및 콘솔에 출력
+#     for drive in available_drives:
+#         print(f"Generating file access log for drive {drive}...")
+#         log_file_access(drive)
+# 
+#     print("File access logs generated successfully.")
