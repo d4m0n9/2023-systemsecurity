@@ -49,7 +49,14 @@ def Rename(main):
 def Remove(main):
     os.chdir(main.model.filePath(main.model.parent(main.index)))
     fname = main.model.fileName(main.index)
-    reply = QMessageBox.question(main, '삭제 확인', f"'{fname}'를 삭제하시겠습니까?",
+    if main.model.isDir(main.index):
+        window_title = "폴더 삭제"
+        message = f"'{fname}' 폴더를 삭제하시겠습니까?"
+    else:
+        window_title = "파일 삭제"
+        message = f"'{fname}' 파일을 삭제하시겠습니까?"
+
+    reply = QMessageBox.question(main, window_title, message,
                                  QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
     try:
         if reply == QMessageBox.Yes:
