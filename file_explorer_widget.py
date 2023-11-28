@@ -12,79 +12,105 @@ class Main(QWidget):
     # 초기화
     def __init__(self):
         super().__init__()
+
+        # 기본 변수 설정
         self.path = ""
         self.index = None
 
+        # 트리 뷰와 모델 설정
         self.tv = QTreeView(self)
         self.model = QFileSystemModel()
+
+        # 검색 필드 설정
         self.searchEdit = QLineEdit(self)
-        
         self.searchEdit.setPlaceholderText("검색")
         self.searchEdit.setFixedWidth(200)
-        font = QFont("맑은 고딕", 8) 
-        self.searchEdit.setFont(font)
-        
-        self.propertiesChanged = pyqtSignal(str, int)  # 속성 변경 시그널
+        self.searchEdit.setFont(QFont("맑은 고딕", 8))
+
+        # 속성 변경 시그널 설정
+        self.propertiesChanged = pyqtSignal(str, int)
+
+        # UI 설정
         self.setUi()
+
+        # 슬롯 설정
         self.setSlot()
 
     # 인터페이스 설정
     def setUi(self):
+        # 창 설정
         self.setGeometry(300, 150, 700, 500)
         self.setWindowTitle("파일 탐색기")
+
+        # 모델 설정
         self.model.setRootPath(self.path)
-        self.tv.setSortingEnabled(True)
         self.tv.setModel(self.model)
+        self.tv.setSortingEnabled(True)
+
+        # 트리 뷰 설정
         self.tv.setColumnWidth(0, 250)
         self.tv.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tv.customContextMenuRequested.connect(self.openMenu)
 
+        # 검색 필드 설정
+        self.searchEdit.setPlaceholderText("검색")
+        self.searchEdit.setFixedWidth(200)
+        self.searchEdit.setFont(QFont("맑은 고딕", 8))
+
+        # 검색 필드 레이아웃 설정
         searchLayout = QHBoxLayout()
         searchLayout.addStretch(1)
         searchLayout.addWidget(self.searchEdit)
 
-        layout = QVBoxLayout()
-        layout.addLayout(searchLayout)
-        layout.addWidget(self.tv)
-        
+        # 파일 로그 텍스트 필드 설정
         self.fileLogTextEdit = QTextEdit(self)
         self.fileLogTextEdit.setReadOnly(True)
         self.fileLogTextEdit.setFixedHeight(150)
-        font = QFont("맑은 고딕", 9) 
-        self.fileLogTextEdit.setFont(font)
+        self.fileLogTextEdit.setFont(QFont("맑은 고딕", 9))
+
+        # 전체 레이아웃 설정
+        layout = QVBoxLayout()
+        layout.addLayout(searchLayout)
+        layout.addWidget(self.tv)
         layout.addWidget(self.fileLogTextEdit)
-        
+
+        # 최종 레이아웃 적용
         self.setLayout(layout)
-        
+
+        # 파일 로그 업데이트
         self.updateFileLog()
+
 
     # 우클릭 메뉴
     def openMenu(self, position):
-        self.index = self.sender().indexAt(position)
-        indexes = self.sender().selectedIndexes()
-        if len(indexes) > 0:
-            menu = QMenu()
-            font = QFont("맑은 고딕", 9)
-            menu.setFont(font) 
-            openAction = menu.addAction("열기")
-            renameAction = menu.addAction("이름 바꾸기")
-            deleteAction = menu.addAction("삭제")
-            propertiesAction = menu.addAction("속성")
-            fileInfo = self.model.fileInfo(self.index)
-            if not fileInfo.isDir():  # 파일일 때만
-                scanVirusAction = menu.addAction("악성코드 스캔")
-            action = menu.exec_(self.sender().viewport().mapToGlobal(position))
+        # 메뉴와 액션 설정
+        menu = QMenu()
+        menu.setFont(QFont("맑은 고딕", 8))
+        openAction = menu.addAction("열기")
+        renameAction = menu.addAction("이름 바꾸기")
+        deleteAction = menu.addAction("삭제")
+        propertiesAction = menu.addAction("속성")
 
-            if action == openAction:
-                self.Open(self.index)
-            elif action == renameAction:
-                self.Rename()
-            elif action == deleteAction:
-                self.Remove()
-            elif action == propertiesAction:
-                self.ShowProperties()
-            elif 'scanVirusAction' in locals() and action == scanVirusAction:
-                self.ScanVirus()
+        # 파일 정보를 기반으로 메뉴 항목 추가
+        self.index = self.sender().indexAt(position)
+        fileInfo = self.model.fileInfo(self.index)
+        if not fileInfo.isDir():  # 파일일 때만
+            scanVirusAction = menu.addAction("악성코드 스캔")
+
+        # 메뉴 실행
+        action = menu.exec_(self.sender().viewport().mapToGlobal(position))
+
+        # 액션에 따른 동작 실행
+        if action == openAction:
+            self.Open(self.index)
+        elif action == renameAction:
+            self.Rename()
+        elif action == deleteAction:
+            self.Remove()
+        elif action == propertiesAction:
+            self.ShowProperties()
+        elif 'scanVirusAction' in locals() and action == scanVirusAction:
+            self.ScanVirus()
 
 
     # Backspace 키 누르면 뒤로가기
@@ -149,11 +175,11 @@ class Main(QWidget):
     # 사용자로부터 API 키를 입력 받는 메서드
     def get_api_key(self):
         dialog = QDialog(self)
-        dialog.setWindowTitle("API Key Input")
+        dialog.setWindowTitle("API Key 입력")
 
         layout = QVBoxLayout(dialog)
 
-        label = QLabel("Enter your VirusTotal API key:")
+        label = QLabel("VirusTotal API key를 입력하시오.")
         font = QFont("맑은 고딕", 9)
         label.setFont(font)
         layout.addWidget(label)
@@ -162,7 +188,7 @@ class Main(QWidget):
         lineEdit.setFont(font)
         layout.addWidget(lineEdit)
 
-        helpLabel = QLabel("일반 사용자 : 30초마다 스캔 가능\n비즈니스 사용자 : 무제한 스캔 가능")  # 도움말 레이블
+        helpLabel = QLabel("<Public API>\n분당 요청 제한 : 2개\n일일 요청 제한 : 500개 \n월별 요청 제한 : 15.5K개\n\n<Premium API>\n요청 제한 없음")  # 도움말 레이블
         helpLabel.setFont(QFont("맑은 고딕", 7))
         helpLabel.setStyleSheet("color: gray;")
         layout.addWidget(helpLabel)
@@ -181,7 +207,7 @@ class Main(QWidget):
         else:
             return None
         
-    # 악성 코드 스캔 및 진단 기능을 사용해서 새 창을 띄워줌
+    # 악성 코드 스캔 기능을 사용해서 새 창을 띄워줌
     def ScanVirus(self):
         if self.index is not None:
             self.api_key = self.get_api_key()  # 악성코드 스캔을 실행할 때 API 키를 입력받음
@@ -198,10 +224,10 @@ class Main(QWidget):
                 report = get_scan_report(self.api_key, resource)
 
                 # 4단계: 스캔 결과 인쇄
-                result_message = f" Scan results:\n\n" \
-                                f"  - Total scans: {report['total']}\n" \
-                                f"  - Positive scans: {report['positives']}\n" \
-                                f"  - Scan results:"
+                result_message = f" 스캔 결과 :\n\n" \
+                                f"  - 스캔 수: {report['total']}\n" \
+                                f"  - 감염 수: {report['positives']}\n" \
+                                f"  - 상세 결과 :"
                 for scanner, result in report['scans'].items():
                     result_message += f"\n    - {scanner}: {result}"
         
