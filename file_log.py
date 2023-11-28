@@ -2,7 +2,7 @@ import os
 import datetime
 
 def log_file_access(root_dir):
-    file_log = 'File Access Log - {}\n'.format(datetime.datetime.now())
+    file_log = '파일 접근 기록 - {}\n'.format(datetime.datetime.now())
     file_log += '-' * 50 + '\n'
     
     # 파일들에 대한 정보를 저장할 리스트
@@ -23,7 +23,7 @@ def log_file_access(root_dir):
                     # 액세스 거부된 파일이나 파일이 없는 경우, 시스템에서 파일에 액세스할 수 없는 경우는 무시
                     pass
                 except Exception as e:
-                    print('Error accessing {}: {}'.format(file_path, str(e)))
+                    print('접근 오류 {}: {}'.format(file_path, str(e)))
     
     # 날짜 기준으로 파일들을 정렬
     file_info_list.sort(key=lambda x: x[1], reverse=True)  # 최근에 접근한 것이 앞에 오도록 정렬
