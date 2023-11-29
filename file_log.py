@@ -36,7 +36,7 @@ def log_file_access(root_dir):
     file_info_list.sort(key=lambda x: x[1], reverse=True)  # 최근에 접근한 것이 앞에 오도록 정렬
 
     # 20개 항목만 출력하나 상의 후 출력 개수 수정할 필요 있음
-    for file_info in file_info_list[:20]:
+    for file_info in file_info_list[:50]:
         file_log += '{} - {}\n'.format(file_info[0], file_info[1])
         
     return file_log
