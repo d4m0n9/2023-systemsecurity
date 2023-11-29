@@ -2,16 +2,14 @@
 import os
 import shutil
 import datetime
-from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox, QTreeView, QVBoxLayout, QDialog, QLabel
 import win32api
-from file_log import log_file_access
-
+from PyQt5.QtWidgets import QInputDialog, QMessageBox, QTreeView, QVBoxLayout, QDialog, QLabel
+from PyQt5.QtGui import QFont
 
 # 선택된 파일/폴더 열기
 def Open(main, index):
     if index.isValid() and index.column() == 0:
         item_path = main.model.filePath(index)
-        log_file_access(item_path)
         if main.model.isDir(index):
             main.tv.setRootIndex(index)
             main.tv.scrollTo(index, QTreeView.PositionAtCenter)
@@ -29,21 +27,32 @@ def Open(main, index):
 def Rename(main):
     os.chdir(main.model.filePath(main.model.parent(main.index)))
     fname = main.model.fileName(main.index)
-    text, res = QInputDialog.getText(main, "이름 바꾸기", "바꿀 이름을 입력하세요.", QLineEdit.Normal, fname)
+    dialog = QInputDialog(main)
+    dialog.setInputMode(QInputDialog.TextInput)
+    dialog.setWindowTitle("이름 바꾸기")
+    dialog.setLabelText("바꿀 이름을 입력하세요.")
+    dialog.setTextValue(fname)
+    dialog.setFont(QFont("맑은 고딕")) 
+
+    res = dialog.exec_()
+    text = dialog.textValue()
 
     if res:
         while True:
             main.ok = True
             for i in os.listdir(os.getcwd()):
                 if i == text:
-                    text, res = QInputDialog.getText(main, "중복 오류", "바꿀 이름을 입력하세요", QLineEdit.Normal, text)
+                    dialog.setWindowTitle("중복 오류")
+                    dialog.setLabelText("바꿀 이름을 입력하세요")
+                    dialog.setTextValue(text)
+                    res = dialog.exec_()
+                    text = dialog.textValue()
                     if not res:
                         return
                     main.ok = False
             if main.ok:
                 break
         os.rename(fname, text)
-
 
 # 선택된 파일/폴더 삭제
 def Remove(main):
@@ -93,9 +102,11 @@ def Search(main, text):
     if results:
         for file_path in results:
             label = QLabel(file_path)
+            label.setFont(QFont("맑은 고딕"))
             layout.addWidget(label)
     else:
         label = QLabel("검색 결과가 없습니다.")
+        label.setFont(QFont("맑은 고딕"))
         layout.addWidget(label)
     dialog.setLayout(layout)
     dialog.show()
