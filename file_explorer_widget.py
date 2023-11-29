@@ -3,10 +3,10 @@ import os
 import ctypes
 from PyQt5.QtWidgets import QWidget, QTreeView, QVBoxLayout, QHBoxLayout, QFileSystemModel, QMenu, QLineEdit, QScrollArea, \
                             QDialog, QLabel, QPushButton, QMessageBox, QFrame, QTextEdit, QDialogButtonBox
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal, QCoreApplication
 from PyQt5.QtGui import QFont
 from malicious_diagnostics import scan_file, get_scan_report
-from file_log import log_file_access
+from file_log import log_file_access, get_available_drives
 
 class Main(QWidget):
     # 초기화
@@ -29,6 +29,10 @@ class Main(QWidget):
 
         # 속성 변경 시그널 설정
         self.propertiesChanged = pyqtSignal(str, int)
+        
+        # 파일 로그 버튼 추가
+        self.fileLogBtn = QPushButton("파일 로그 보기", self)
+        self.fileLogBtn.setFont(QFont("맑은 고딕", 8))
 
         # UI 설정
         self.setUi()
@@ -48,7 +52,10 @@ class Main(QWidget):
         self.tv.setSortingEnabled(True)
 
         # 트리 뷰 설정
-        self.tv.setColumnWidth(0, 250)
+        self.tv.setColumnWidth(0, 250) 
+        self.tv.setColumnWidth(1, 130)
+        self.tv.setColumnWidth(2, 130)
+        self.tv.setColumnWidth(3, 130)
         self.tv.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tv.customContextMenuRequested.connect(self.openMenu)
 
@@ -61,12 +68,13 @@ class Main(QWidget):
         searchLayout = QHBoxLayout()
         searchLayout.addStretch(1)
         searchLayout.addWidget(self.searchEdit)
+        searchLayout.addWidget(self.fileLogBtn)
 
         # 파일 로그 텍스트 필드 설정
         self.fileLogTextEdit = QTextEdit(self)
         self.fileLogTextEdit.setReadOnly(True)
-        self.fileLogTextEdit.setFixedHeight(150)
-        self.fileLogTextEdit.setFont(QFont("맑은 고딕", 9))
+        self.fileLogTextEdit.setFixedHeight(200)
+        self.fileLogTextEdit.setFont(QFont("맑은 고딕", 8))
 
         # 전체 레이아웃 설정
         layout = QVBoxLayout()
@@ -76,9 +84,6 @@ class Main(QWidget):
 
         # 최종 레이아웃 적용
         self.setLayout(layout)
-
-        # 파일 로그 업데이트
-        self.updateFileLog()
 
 
     # 우클릭 메뉴
@@ -122,9 +127,9 @@ class Main(QWidget):
     # 액션 이벤트 연결
     def setSlot(self):
         self.tv.clicked.connect(self.SetIndex) # 선택된 아이템에 대한 정보 처리
-        self.tv.doubleClicked.connect(self.updateFileLog) # 아이템 더블 클릭 시 파일 로그 업데이트
         self.tv.doubleClicked.connect(self.Open) # 아이템 더블 클릭 시 열기 기능 실행
         self.searchEdit.returnPressed.connect(self.Search) # 엔터 키 누를 시 검색 기능 실행
+        self.fileLogBtn.clicked.connect(self.showFileLog) # 버튼 클릭 시 파일 로그 출력
 
     # 선택된 파일/폴더의 인덱스 저장
     def SetIndex(self, index):
@@ -164,13 +169,15 @@ class Main(QWidget):
         else:
             QMessageBox.warning(self, "오류", message)
     
-    # 파일 로그 업데이트
-    def updateFileLog(self):
-        index = self.tv.currentIndex()
-        self.path = self.model.filePath(index)  # 선택된 디렉토리 경로 가져오기
-        if self.path:
-            file_log = log_file_access(self.path)
-            self.fileLogTextEdit.setPlainText(file_log)
+    # 파일 로그 출력
+    def showFileLog(self):
+        for drive in get_available_drives():
+            self.fileLogTextEdit.append(f"{drive} 파일 로그 생성 중...")
+            QCoreApplication.processEvents()
+            fileLog = log_file_access(drive)
+            self.fileLogTextEdit.append(fileLog)
+            self.fileLogTextEdit.append(f"{drive} 파일 로그 생성 완료\n")
+        self.fileLogTextEdit.append("모든 드라이브의 파일 로그 생성 완료")
         
     # 사용자로부터 API 키를 입력 받는 메서드
     def get_api_key(self):
