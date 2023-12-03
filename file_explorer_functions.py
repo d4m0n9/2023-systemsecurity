@@ -22,6 +22,15 @@ def Open(main, index):
 
     return item_path
 
+def OpenItem(main):
+    if main.index.isValid():
+        if main.model.isDir(main.index):
+            main.tv.setRootIndex(main.index)
+            main.tv.scrollTo(main.index, QTreeView.PositionAtCenter)
+        else:
+            item_path = main.model.filePath(main.index)
+            url = QUrl.fromLocalFile(item_path)
+            QDesktopServices.openUrl(url)
 
 # 선택된 파일/폴더 이름 변경
 def Rename(main):
@@ -32,7 +41,7 @@ def Rename(main):
     dialog.setWindowTitle("이름 바꾸기")
     dialog.setLabelText("바꿀 이름을 입력하세요.")
     dialog.setTextValue(fname)
-    dialog.setFont(QFont("맑은 고딕")) 
+    dialog.setFont(QFont("맑은 고딕"))
 
     res = dialog.exec_()
     text = dialog.textValue()
